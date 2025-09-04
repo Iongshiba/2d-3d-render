@@ -4,17 +4,18 @@ from OpenGL import GL
 class Shader:
     def __init__(self, source, typ=None):
         self.source = source
-        self.typ = typ
 
         if typ is None:
             typ_name = source.split(".")[-1]
             match typ_name:
                 case "vert":
-                    self.typ = GL.GL_VERTEX_SHADER
+                    typ = GL.GL_VERTEX_SHADER
                 case "frag":
-                    self.typ = GL.GL_FRAGMENT_SHADER
+                    typ = GL.GL_FRAGMENT_SHADER
                 case _:
                     raise ValueError(f"Invalid file extension {typ_name}")
+
+        self.typ = typ
 
         self.shader = self.compile_shader(source, typ)
 
@@ -24,7 +25,7 @@ class Shader:
             code = f.read()
             shader = GL.glCreateShader(typ)
             GL.glShaderSource(shader, code)
-            GL.glcompile_shader(shader)
+            GL.glCompileShader(shader)
 
         if GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS) != GL.GL_TRUE:
             log = GL.glGetShaderInfoLog(shader).decode()
@@ -33,7 +34,7 @@ class Shader:
         return shader
 
 
-class Program:
+class ShaderProgram:
     def __init__(self):
         self.shaders = {}
         self.program = GL.glCreateProgram()
