@@ -27,6 +27,7 @@ class Shader:
             GL.glShaderSource(shader, code)
             GL.glCompileShader(shader)
 
+        # Check if compiled successufully
         if GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS) != GL.GL_TRUE:
             log = GL.glGetShaderInfoLog(shader).decode()
             raise RuntimeError(log)
