@@ -21,7 +21,7 @@ class App:
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
-        self.window = glfw.create_window(1280, 720, "App", None, None)
+        self.window = glfw.create_window(1000, 1000, "App", None, None)
 
         if not self.window:
             raise RuntimeError("Window failed to create")
@@ -47,7 +47,6 @@ class App:
 
     def run(self):
         while not glfw.window_should_close(self.window):
-
             for shape in self.shapes:
                 shape.draw()
 
