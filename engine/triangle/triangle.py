@@ -9,9 +9,9 @@ from libs.shader import Shader, ShaderProgram
 class Triangle:
     def __init__(self, vertex_file, fragment_file):
         self.vertices = [
-            [-0.5, -0.5, 0.0],
-            [0.5, -0.5, 0.0],
-            [0.0, 0.5, 0.0],
+            [-1, -1, 0.0],
+            [1, -1, 0.0],
+            [0.0, 1, 0.0],
         ]
         self.colors = [
             [1.0, 0.0, 0.0],

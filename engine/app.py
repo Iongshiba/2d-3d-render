@@ -5,11 +5,11 @@ import ctypes
 
 import numpy as np
 
-from OpenGL import GL
 
-# # Set platform hint before importing OpenGL
-# if sys.platform.startswith("linux"):
-#     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
+if sys.platform.startswith("linux"):
+    os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
+
+from OpenGL import GL
 
 
 class App:
