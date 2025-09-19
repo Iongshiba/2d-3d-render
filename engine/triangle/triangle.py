@@ -16,28 +16,28 @@ class Triangle:
         ]
         self.colors = [
             [1.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
         ]
         self.vertices = np.array(self.vertices, dtype=np.float32)
         self.colors = np.array(self.colors, dtype=np.float32)
+
+        vertex_vbo = VBO(0, self.vertices)
+        color_vbo = VBO(1, self.colors)
+        self.vao = VAO()
+        self.vao.add_vbo(vertex_vbo)
+        self.vao.add_vbo(color_vbo)
 
         vertex_shader = Shader(vertex_file)
         fragment_shader = Shader(fragment_file)
         self.shader_program = ShaderProgram()
 
-        vertex_vbo = VBO(0, self.vertices)
-        color_vbo = VBO(1, self.colors)
-        self.vao = VAO()
-
-        self.vao.add_vbo(vertex_vbo)
-        self.vao.add_vbo(color_vbo)
-
         self.shader_program.add_shader(vertex_shader)
         self.shader_program.add_shader(fragment_shader)
         self.shader_program.build()
 
-        self.delta = 0.005
+
+        self.delta = 0.00005
         self.alpha = 1.0
         self.transform_matrix = np.array([
             [1, 0, 0, 0],
@@ -53,7 +53,7 @@ class Triangle:
         self.shader_program.deactivate()
 
     def transform(self, fn, *args):
-        if self.alpha <= -2 or self.alpha >= 2:
+        if self.alpha <= -1 or self.alpha >= 1:
             self.delta *= -1
         self.alpha += self.delta
         fn(*args)
@@ -90,9 +90,9 @@ class Triangle:
         self.shader_program.activate()
 
         # transformation
-        # self.transform(self.scale, 0.25)
-        # self.transform(self.translate)
-        # self.transform(self.rotate, 'x')
+        self.transform(self.scale, 0.25)
+        self.transform(self.translate)
+        self.transform(self.rotate, 'x')
 
         # clear screen
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
