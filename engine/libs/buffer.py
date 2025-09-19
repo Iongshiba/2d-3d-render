@@ -82,20 +82,23 @@ class VAO:
 
     def add_ebo(self, ebo):
         self.activate()
-        ebo.activate()
+        ebo.activate()  # bind EBO to the currently active VAO
 
-        GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, self.ebo)
+        # Store reference; keep EBO bound while VAO is active so the binding is recorded in VAO state
         self.ebo = ebo
 
-        ebo.deactivate()
+        # Deactivate VAO first so unbinding the EBO (if desired) won't clear the VAO's EBO binding
         self.deactivate()
+        # Optional: unbind element array buffer to avoid leaking global binding (doesn't affect VAO's stored state)
+        ebo.deactivate()
 
     def __del__(self):
         GL.glDeleteVertexArrays(1, [self.vao])
         vbos = list(self.vbos.values())
-        GL.glDeleteBuffers(len(vbos), [vbos])
+        if vbos:
+            GL.glDeleteBuffers(len(vbos), vbos)
         if self.ebo is not None:
-            GL.glDeleteBuffers(1, [self.ebo])
+            GL.glDeleteBuffers(1, [self.ebo.ebo])
 
     def activate(self):
         GL.glBindVertexArray(self.vao)  # activated

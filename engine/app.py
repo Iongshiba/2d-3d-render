@@ -6,12 +6,6 @@ import ctypes
 import numpy as np
 
 
-if sys.platform.startswith("linux"):
-    os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
-
-from OpenGL import GL
-
-
 class App:
     def __init__(self):
         if not glfw.init():
