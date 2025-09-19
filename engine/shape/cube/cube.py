@@ -54,15 +54,33 @@ class Cube(Shape):
 
         self.setup_buffers({0: coords, 1: colors}, indices)
 
-    def draw(self):
+    def draw(self, app=None):
         self.shader_program.activate()
         self.vao.activate()
 
-        # transform
-        self.transform(self.rotate, 'x')
+        # Clear window
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-        # clear screen
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        # Get aspect ratio from app if available
+        aspect_ratio = 1.0
+        if app and hasattr(app, 'get_aspect_ratio'):
+            aspect_ratio = app.get_aspect_ratio()
+
+        # Create transformation matrices
+        projection = self.project(fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0)
+        rotation = self.rotate('x')
+        scale = self.scale(1)
+        
+        # Move cube back so it's visible (at z = -3)
+        # view_translation = np.copy(self.transform_matrix)
+        # view_translation[2, 3] = -3.0  # Move back along z-axis
+        
+        # Combine transformations: projection * view * rotation
+        # final_transform = np.dot(projection, np.dot(view_translation, rotation))
+        
+        # self.transform([])
+
+        # Draw the cube
         GL.glDrawElements(GL.GL_TRIANGLES, len(self.indices), GL.GL_UNSIGNED_INT, None)
 
         self.vao.deactivate()
