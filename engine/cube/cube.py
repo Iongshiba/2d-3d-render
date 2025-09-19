@@ -22,7 +22,18 @@ class Cube:
             Vertex(0.5, -0.5, 0.5),
         ]
         self.indexes = [
-
+            # bottom
+            0, 1, 2,
+            1, 3, 2,
+            # top
+            4, 5, 6,
+            5, 7, 6,
+            # left
+            4, 6, 0,
+            6, 2, 0,
+            # right
+            7, 5, 1,
+            
         ]
 
         coord_vbo = VBO(0, self.vertices, stride=3, offset=0)
