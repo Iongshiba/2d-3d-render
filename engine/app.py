@@ -8,7 +8,7 @@ from OpenGL import GL
 
 
 class App:
-    def __init__(self):
+    def __init__(self, width, height):
         if not glfw.init():
             raise RuntimeError("GLFW failed to initialize")
 
@@ -16,18 +16,14 @@ class App:
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
-        self.width = 1000
-        self.height = 1000
+        self.width = width
+        self.height = height
         self.window = glfw.create_window(self.width, self.height, "App", None, None)
 
         if not self.window:
             raise RuntimeError("Window failed to create")
 
         glfw.make_context_current(self.window)
-        
-        # Set up OpenGL viewport
-        GL.glViewport(0, 0, self.width, self.height)
-        GL.glEnable(GL.GL_DEPTH_TEST)
 
         glfw.set_key_callback(self.window, self._on_press)
 
@@ -45,14 +41,14 @@ class App:
 
     def add_shape(self, shape):
         self.shapes.append(shape)
-        
+
     def get_aspect_ratio(self):
         return self.width / self.height
 
     def run(self):
         while not glfw.window_should_close(self.window):
+            # Clear once per frame
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-            
             for shape in self.shapes:
                 # Check if shape.draw accepts app parameter
                 try:

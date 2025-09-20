@@ -12,12 +12,12 @@ class Cube(Shape):
         super().__init__(vertex_file, fragment_file)
 
         vertex_objects = [
-            # bottom square
+            # back square with normal outside
             Vertex(-0.5, 0.5, -0.5),
             Vertex(0.5, 0.5, -0.5),
             Vertex(-0.5, -0.5, -0.5),
             Vertex(0.5, -0.5, -0.5),
-            # top square
+            # front square
             Vertex(-0.5, 0.5, 0.5),
             Vertex(0.5, 0.5, 0.5),
             Vertex(-0.5, -0.5, 0.5),
@@ -32,10 +32,10 @@ class Cube(Shape):
         ], dtype=np.float32)
 
         indices = np.array([
-            # bottom
+            # back with normal go out
             0, 1, 2,
             3, 2, 1,
-            # top
+            # front with normal go out
             4, 6, 5,
             7, 5, 6,
             # left
@@ -54,12 +54,15 @@ class Cube(Shape):
 
         self.setup_buffers({0: coords, 1: colors}, indices)
 
+    def translate(self):
+        transform_matrix = np.copy(self.transform_matrix)
+        # Move the cube back along -Z so it falls within the perspective frustum
+        transform_matrix[2, 3] = -2
+        return transform_matrix
+
     def draw(self, app=None):
         self.shader_program.activate()
         self.vao.activate()
-
-        # Clear window
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
         # Get aspect ratio from app if available
         aspect_ratio = 1.0
@@ -68,17 +71,12 @@ class Cube(Shape):
 
         # Create transformation matrices
         projection = self.project(fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0)
-        rotation = self.rotate('x')
-        scale = self.scale(1)
+        translate = self.translate()
+        scale = self.scale(0.5)
+        rotate = self.rotate('y')
         
-        # Move cube back so it's visible (at z = -3)
-        # view_translation = np.copy(self.transform_matrix)
-        # view_translation[2, 3] = -3.0  # Move back along z-axis
-        
-        # Combine transformations: projection * view * rotation
-        # final_transform = np.dot(projection, np.dot(view_translation, rotation))
-        
-        # self.transform([])
+        # final = proj * model (model = T * R * S)
+        self.transform([projection, translate, rotate, scale])
 
         # Draw the cube
         GL.glDrawElements(GL.GL_TRIANGLES, len(self.indices), GL.GL_UNSIGNED_INT, None)

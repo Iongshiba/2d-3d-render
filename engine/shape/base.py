@@ -32,7 +32,7 @@ class Shape:
         self.indices: np.ndarray | None = None
         self.vertex_count: int = 0
 
-        self.delta = 0.0005
+        self.delta = 0.05
         self.alpha = 1.0
         self.transform_matrix = np.array([
             [1, 0, 0, 0],
@@ -80,13 +80,20 @@ class Shape:
             self.vao.add_ebo(self.ebo)
 
     def transform(self, matrix):
-        matrix = [matrix] if not isinstance(matrix, list) else matrix
-        if self.alpha <= -5 or self.alpha >= 5:
+        # Accept a single matrix/function or a list of them.
+        items = matrix
+        if not isinstance(items, (list, tuple)):
+            items = [items]
+
+        # Update an animation parameter if desired
+        if self.alpha <= -10 or self.alpha >= 30:
             self.delta *= -1
         self.alpha += self.delta
-        matrix = reduce(np.dot, matrix[::-1])
-        
-        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, matrix)
+
+        # Multiply in the provided order: e.g., [projection, view, model]
+        # With gl_Position = transform * vec4(pos,1), this applies model first, then view, then projection.
+        final = reduce(np.dot, items)
+        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, final)
 
     def scale(self, factor=1):
         transform_matrix = np.copy(self.transform_matrix)
@@ -97,8 +104,8 @@ class Shape:
 
     def translate(self):
         transform_matrix = np.copy(self.transform_matrix)
-        transform_matrix[0, 3] = self.alpha
-        transform_matrix[1, 3] = self.alpha
+        transform_matrix[2, 3] = self.alpha
+        # transform_matrix[1, 3] = self.alpha
         return transform_matrix
     
     def rotate(self, axis='x'):
@@ -119,29 +126,21 @@ class Shape:
         return transform_matrix
 
     def project(self, fov=90.0, aspect_ratio=1.0, near=0.1, far=100.0):
-        """
-        Create a perspective projection matrix.
-        
-        Args:
-            fov: Field of view in degrees
-            aspect_ratio: Width/height ratio of the viewport  
-            near: Near clipping plane distance
-            far: Far clipping plane distance
-        """
-        # Convert FOV to radians and calculate tangent
         fov_rad = np.radians(fov)
-        f = 1.0 / np.tan(fov_rad / 2.0)
-         
-        # Create perspective projection matrix
-        projection_matrix = np.zeros((4, 4), dtype=np.float32)
-        projection_matrix[0, 0] = f / aspect_ratio  # Scale X by aspect ratio
-        projection_matrix[1, 1] = f                # Scale Y 
-        projection_matrix[2, 2] = (far + near) / (near - far)     # Z scaling
-        projection_matrix[2, 3] = (2.0 * far * near) / (near - far)  # Z translation
-        projection_matrix[3, 2] = -1.0             # Perspective divide
-        projection_matrix[3, 3] = 0.0              # W component
+        f = np.float32(1.0 / np.tan(fov_rad / 2.0))
         
-        return projection_matrix
+        # Standard right-handed perspective matrix (row-major here; we pass transpose=True to OpenGL)
+        # x' = (f/aspect) * x, y' = f * y
+        # z' = (far+near)/(near-far) * z + (2*far*near)/(near-far)
+        # w' = -z
+        proj = np.zeros((4, 4), dtype=np.float32)
+        proj[0, 0] = f / np.float32(aspect_ratio)
+        proj[1, 1] = f
+        proj[2, 2] = (far + near) / (near - far)
+        proj[2, 3] = (2.0 * far * near) / (near - far)
+        proj[3, 2] = -1.0
+        # proj[3, 3] stays 0
+        return proj
         
     # def draw(self):
     #     self.shader_program.activate()
