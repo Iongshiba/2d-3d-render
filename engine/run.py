@@ -5,7 +5,7 @@ if sys.platform.startswith("linux"):
     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
 
 from app import App
-from shape import Triangle, Cube, Cylinder
+from shape import Triangle, Cube, Cylinder, Sphere
 from OpenGL import GL
 
 # fmt: off
@@ -22,7 +22,7 @@ def main():
     GL.glCullFace(GL.GL_BACK)
     # This heavily depends on setting the w for homogeneous
     # If w is positive
-    GL.glFrontFace(GL.GL_CCW)
+    GL.glFrontFace(GL.GL_CW)
     GL.glClearColor(0.1, 0.1, 0.12, 1.0)
 
 
@@ -30,8 +30,9 @@ def main():
     triangle = Triangle("./shape/triangle/triangle.vert", "./shape/triangle/triangle.frag")
     cube = Cube("./shape/cube/cube.vert", "./shape/cube/cube.frag")
     cylinder = Cylinder("./shape/cylinder/cylinder.vert", "./shape/cylinder/cylinder.frag", 1, 0.5, 20)
+    sphere = Sphere("./shape/cylinder/cylinder.vert", "./shape/cylinder/cylinder.frag", 2, 160, 161)
 
-    app.add_shape(cylinder)
+    app.add_shape(sphere)
 
     app.run()
 
