@@ -72,11 +72,11 @@ class Cube(Shape):
         # Create transformation matrices
         projection = self.project(fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0)
         translate = self.translate()
-        scale = self.scale(0.5)
-        rotate = self.rotate('y')
+        rotatey = self.rotate('y')
+        rotatex = self.rotate('x')
         
         # final = proj * model (model = T * R * S)
-        self.transform([projection, translate, rotate, scale])
+        self.transform([projection, translate, rotatex, rotatey])
 
         # Draw the cube
         GL.glDrawElements(GL.GL_TRIANGLES, len(self.indices), GL.GL_UNSIGNED_INT, None)

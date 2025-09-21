@@ -32,7 +32,7 @@ class Shape:
         self.indices: np.ndarray | None = None
         self.vertex_count: int = 0
 
-        self.delta = 0.05
+        self.delta = 0.0005
         self.alpha = 1.0
         self.transform_matrix = np.array([
             [1, 0, 0, 0],
