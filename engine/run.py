@@ -5,7 +5,7 @@ if sys.platform.startswith("linux"):
     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
 
 from app import App
-from shape import Triangle, Cube
+from shape import Triangle, Cube, Cylinder
 from OpenGL import GL
 
 # fmt: off
@@ -29,8 +29,9 @@ def main():
     shape_dir = "./shape"
     triangle = Triangle("./shape/triangle/triangle.vert", "./shape/triangle/triangle.frag")
     cube = Cube("./shape/cube/cube.vert", "./shape/cube/cube.frag")
+    cylinder = Cylinder("./shape/cylinder/cylinder.vert", "./shape/cylinder/cylinder.frag", 1, 0.5, 20)
 
-    app.add_shape(cube)
+    app.add_shape(cylinder)
 
     app.run()
 

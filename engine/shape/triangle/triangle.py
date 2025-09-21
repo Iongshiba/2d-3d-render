@@ -3,7 +3,7 @@ import numpy as np
 from OpenGL import GL
 
 from libs.vertex import Vertex
-from shape.base import Shape
+from shape.base import Shape, ShapeCandidate
 
 
 # fmt: off
@@ -24,20 +24,21 @@ class Triangle(Shape):
             o.color.flatten() for o in vertex_objects
         ], dtype=np.float32)
 
-        self.setup_buffers({0: coords, 1: colors}, indices=None)
+        self.shape_candidates = [ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})]
+        self.setup_buffers()
 
     def draw(self):
         self.shader_program.activate()
-        self.vao.activate()
+        for shape in self.shape_candidates:
+            self.vaos[shape.vao_id].activate()
 
-        # transformation
-        self.transform(self.scale, 0.25)
-        self.transform(self.translate)
-        self.transform(self.rotate, 'x')
+            # transformation
+            translate = self.translate()
+            rotate = self.rotate('y')
+            scale = self.scale(0.5)
+            self.transform([rotate, scale])
 
-        # clear screen
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3)  # Doesn't require EBO
+            GL.glDrawArrays(shape.draw_mode, 0, 3)  # Doesn't require EBO
 
-        self.vao.deactivate()
+            self.vaos[shape.vao_id].deactivate()
         self.shader_program.deactivate()

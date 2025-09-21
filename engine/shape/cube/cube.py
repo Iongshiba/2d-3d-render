@@ -3,7 +3,7 @@ import numpy as np
 from OpenGL import GL
 
 from libs.vertex import Vertex
-from shape.base import Shape
+from shape.base import Shape, ShapeCandidate
 
 
 # fmt: off
@@ -52,7 +52,9 @@ class Cube(Shape):
             5, 1, 4,
         ], dtype=np.uint32)
 
-        self.setup_buffers({0: coords, 1: colors}, indices)
+        self.shape_candidates = [ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})]
+
+        self.setup_buffers()
 
     def translate(self):
         transform_matrix = np.copy(self.transform_matrix)
@@ -62,24 +64,21 @@ class Cube(Shape):
 
     def draw(self, app=None):
         self.shader_program.activate()
-        self.vao.activate()
+        for vao, shape in enumerate(self.shape_candidates):
+            self.vaos[vao].activate()
 
-        # Get aspect ratio from app if available
-        aspect_ratio = 1.0
-        if app and hasattr(app, 'get_aspect_ratio'):
-            aspect_ratio = app.get_aspect_ratio()
+            aspect_ratio = 1.0
+            if app and hasattr(app, 'get_aspect_ratio'):
+                aspect_ratio = app.get_aspect_ratio()
 
-        # Create transformation matrices
-        projection = self.project(fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0)
-        translate = self.translate()
-        rotatey = self.rotate('y')
-        rotatex = self.rotate('x')
-        
-        # final = proj * model (model = T * R * S)
-        self.transform([projection, translate, rotatex, rotatey])
+            projection = self.project(fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0)
+            translate = self.translate()
+            rotatey = self.rotate('y')
+            rotatex = self.rotate('x')
+            
+            self.transform([projection, translate, rotatex, rotatey])
 
-        # Draw the cube
-        GL.glDrawElements(GL.GL_TRIANGLES, len(self.indices), GL.GL_UNSIGNED_INT, None)
+            GL.glDrawElements(shape.draw, self.vertex_count, GL.GL_UNSIGNED_INT, None)
 
-        self.vao.deactivate()
+            self.vaos[vao].deactivate()
         self.shader_program.deactivate()

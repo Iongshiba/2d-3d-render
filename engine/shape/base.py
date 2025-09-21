@@ -6,6 +6,22 @@ from functools import reduce
 from libs.buffer import VBO, VAO, EBO
 from libs.shader import Shader, ShaderProgram
 
+
+class ShapeCandidate:
+    def __init__(
+        self,
+        vao_id: int,
+        draw_mode: int,
+        attributes: dict[int : np.ndarray],
+        indices: np.ndarray | None = None,
+    ):
+        self.vao_id = vao_id
+        self.draw_mode = draw_mode
+        self.attributes = attributes
+        self.indices = indices
+        self.vertex_count = len(attributes[0])
+
+
 # fmt: off
 class Shape:
     """
@@ -26,9 +42,10 @@ class Shape:
         self.shader_program.build()
 
         # Geometry containers
-        self.vao = VAO()
+        self.shape_candidates = []
+        self.vaos: dict[int, VAO] = {}
         self.vbos: dict[int, VBO] = {}
-        self.ebo: EBO | None = None
+        self.ebos: dict[int, EBO] = {}
         self.indices: np.ndarray | None = None
         self.vertex_count: int = 0
 
@@ -46,38 +63,32 @@ class Shape:
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.transform_matrix)
         self.shader_program.deactivate()
 
-    def setup_buffers(
-        self, attributes: dict[int, np.ndarray], indices: np.ndarray | None = None
-    ):
+    def setup_buffers(self):
         """
         attributes: mapping of attribute location -> numpy array of shape (N, C)
         indices: optional numpy array of dtype uint16/uint32
         """
         # Determine vertex count from the first attribute
-        if not attributes:
-            raise ValueError("No vertex attributes provided")
+        if not self.shape_candidates:
+            raise ValueError("No shape candidate provided")
 
-        first_attr = next(iter(attributes.values()))
-        if first_attr.ndim != 2:
-            raise ValueError("Attribute arrays must be 2D: (N, C)")
-        self.vertex_count = int(first_attr.shape[0])
+        for shape in self.shape_candidates:
+            vao = shape.vao_id
 
-        # Create and attach VBOs
-        for location, data in attributes.items():
-            if data.shape[0] != self.vertex_count:
-                raise ValueError("All attribute arrays must have the same vertex count")
-            ncomponents = int(data.shape[1])
-            vbo = VBO(location, data, ncomponents=ncomponents)
-            self.vao.add_vbo(vbo)
-            self.vbos[location] = vbo
+            self.vaos[vao] = VAO()
 
-        # Create and attach EBO if indices provided
-        if indices is not None:
-            if indices.dtype not in (np.uint16, np.uint32):
-                raise ValueError("Index array must have dtype uint16 or uint32")
-            self.indices = indices
-            self.ebo = EBO(indices)
-            self.vao.add_ebo(self.ebo)
+            # Create and attach VBOs
+            for location, data in shape.attributes.items():
+                ncomponents = int(data.shape[1])
+                vbo = VBO(location, data, ncomponents=ncomponents)
+                self.vaos[vao].add_vbo(vbo)
+                self.vbos[location] = vbo
+
+            # Create and attach EBO if indices provided
+            if shape.indices is not None:
+                ebo = EBO(shape.indices)
+                self.ebos[vao] = ebo
+                self.vaos[vao].add_ebo(ebo)
 
     def transform(self, matrix):
         # Accept a single matrix/function or a list of them.

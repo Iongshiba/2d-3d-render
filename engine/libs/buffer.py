@@ -74,8 +74,10 @@ class VAO:
             vbo.stride,
             vbo.offset,
         )
-        GL.glEnableVertexAttribArray(vbo.location)
-        self.vbos[vbo.location] = vbo.vbo
+        GL.glEnableVertexAttribArray(
+            vbo.location
+        )  # the number of this call match the number of (layout = n) in .vert file
+        self.vbos[vbo.location] = vbo
 
         vbo.deactivate()
         self.deactivate()
