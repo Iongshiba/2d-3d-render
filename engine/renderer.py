@@ -11,7 +11,7 @@ try:
         TextureMode,
         RenderMode,
     )
-    from .registry import ShapeRegistry
+    from .shape import Triangle, Cube, Cylinder, Sphere
 except Exception:  # fallback when executed as a script
     from config import (
         EngineConfig,
@@ -21,7 +21,7 @@ except Exception:  # fallback when executed as a script
         TextureMode,
         RenderMode,
     )
-    from registry import ShapeRegistry
+    from shape import Triangle, Cube, Cylinder, Sphere
 
 
 class Renderer:
@@ -68,7 +68,29 @@ class Renderer:
             program.deactivate()
 
     def _create_shape(self, cfg: EngineConfig):
-        return ShapeRegistry.create(cfg.shape, cfg)
+        match cfg.shape:
+            case ShapeType.TRIANGLE:
+                return Triangle(
+                    "./shape/triangle/triangle.vert", "./shape/triangle/triangle.frag"
+                )
+            case ShapeType.CUBE:
+                return Cube("./shape/cube/cube.vert", "./shape/cube/cube.frag")
+            case ShapeType.CYLINDER:
+                return Cylinder(
+                    "./shape/cylinder/cylinder.vert",
+                    "./shape/cylinder/cylinder.frag",
+                    cfg.cylinder_height,
+                    cfg.cylinder_radius,
+                    cfg.cylinder_sectors,
+                )
+            case ShapeType.SPHERE:
+                return Sphere(
+                    "./shape/cylinder/cylinder.vert",  # reuse basic shaders
+                    "./shape/cylinder/cylinder.frag",
+                    cfg.sphere_radius,
+                    cfg.sphere_sectors,
+                    cfg.sphere_stacks,
+                )
 
     def draw(self, app=None):
         # Provide uniforms for color/shading/texture modes if shaders support them
