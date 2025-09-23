@@ -5,35 +5,51 @@ if sys.platform.startswith("linux"):
     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
 
 from app import App
-from shape import Triangle, Cube, Cylinder, Sphere
-from OpenGL import GL
 
-# fmt: off
+try:
+    from .config import (
+        EngineConfig,
+        ShapeType,
+        ColorMode,
+        ShadingModel,
+        TextureMode,
+        RenderMode,
+    )
+    from .renderer import Renderer
+except Exception:
+    from config import (
+        EngineConfig,
+        ShapeType,
+        ColorMode,
+        ShadingModel,
+        TextureMode,
+        RenderMode,
+    )
+    from renderer import Renderer
+
+
 def main():
-    width = 1000
-    height = 1000
+    cfg = EngineConfig(
+        width=1000,
+        height=1000,
+        shape=ShapeType.SPHERE,  # change to TRIANGLE/CUBE/CYLINDER/SPHERE
+        color_mode=ColorMode.VERTEX,  # change to FLAT for uniform color
+        shading=ShadingModel.NONE,  # placeholder for PHONG
+        texture=TextureMode.NONE,  # placeholder
+        render_mode=RenderMode.FILL,  # placeholder for wireframe
+        flat_color=(0.2, 0.8, 0.3),
+        cylinder_height=1.0,
+        cylinder_radius=0.5,
+        cylinder_sectors=20,
+        sphere_radius=2.0,
+        sphere_sectors=160,
+        sphere_stacks=161,
+    )
 
-    app = App(width, height) # App must init before init shapes
+    app = App(cfg.width, cfg.height)
+    renderer = Renderer(cfg)
 
-    # OpenGL settings - moved after app initialization
-    GL.glViewport(0, 0, width, height)
-    GL.glEnable(GL.GL_DEPTH_TEST)
-    GL.glEnable(GL.GL_CULL_FACE)
-    GL.glCullFace(GL.GL_BACK)
-    # This heavily depends on setting the w for homogeneous
-    # If w is positive
-    GL.glFrontFace(GL.GL_CW)
-    GL.glClearColor(0.1, 0.1, 0.12, 1.0)
-
-
-    shape_dir = "./shape"
-    triangle = Triangle("./shape/triangle/triangle.vert", "./shape/triangle/triangle.frag")
-    cube = Cube("./shape/cube/cube.vert", "./shape/cube/cube.frag")
-    cylinder = Cylinder("./shape/cylinder/cylinder.vert", "./shape/cylinder/cylinder.frag", 1, 0.5, 20)
-    sphere = Sphere("./shape/cylinder/cylinder.vert", "./shape/cylinder/cylinder.frag", 2, 160, 161)
-
-    app.add_shape(sphere)
-
+    app.add_shape(renderer.shape)
     app.run()
 
 

@@ -52,7 +52,7 @@ class Cube(Shape):
             5, 1, 4,
         ], dtype=np.uint32)
 
-        self.shape_candidates = [ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})]
+        self.shape_candidates = [ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors}, indices)]
 
         self.setup_buffers()
 
@@ -64,8 +64,8 @@ class Cube(Shape):
 
     def draw(self, app=None):
         self.shader_program.activate()
-        for vao, shape in enumerate(self.shape_candidates):
-            self.vaos[vao].activate()
+        for shape in self.shape_candidates:
+            self.vaos[shape.vao_id].activate()
 
             aspect_ratio = 1.0
             if app and hasattr(app, 'get_aspect_ratio'):
@@ -78,7 +78,10 @@ class Cube(Shape):
             
             self.transform([projection, translate, rotatex, rotatey])
 
-            GL.glDrawElements(shape.draw, self.vertex_count, GL.GL_UNSIGNED_INT, None)
+            if shape.vao_id in self.ebos:
+                GL.glDrawElements(GL.GL_TRIANGLES, self.ebos[shape.vao_id].indices.size, GL.GL_UNSIGNED_INT, None)
+            else:
+                GL.glDrawArrays(shape.draw_mode, 0, shape.vertex_count)
 
-            self.vaos[vao].deactivate()
+            self.vaos[shape.vao_id].deactivate()
         self.shader_program.deactivate()

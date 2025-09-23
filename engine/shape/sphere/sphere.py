@@ -1,4 +1,3 @@
-import math
 import numpy as np
 
 from OpenGL import GL
@@ -23,8 +22,6 @@ class Sphere(Shape):
         sectors = np.linspace(0, 2 * np.pi, sector + 1)
         stacks = np.linspace(-np.pi / 2.0, np.pi / 2.0, stack)
         X, Y = np.meshgrid(sectors, stacks, indexing="xy")
-        for st in stacks:
-            print(st, np.pi / 2.0)
         top = [Vertex(0, 0, radius)]
         bottom = [Vertex(0, 0, -radius)]
 

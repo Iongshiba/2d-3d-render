@@ -63,6 +63,27 @@ class Shape:
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.transform_matrix)
         self.shader_program.deactivate()
 
+    def set_uniforms(self, uniforms: dict[str, float | int | tuple] | None = None):
+        if not uniforms:
+            return
+        self.shader_program.activate()
+        try:
+            for name, value in uniforms.items():
+                loc = GL.glGetUniformLocation(self.shader_program.program, name)
+                if loc == -1:
+                    continue
+                if isinstance(value, (tuple, list)) and len(value) == 3:
+                    GL.glUniform3f(loc, float(value[0]), float(value[1]), float(value[2]))
+                elif isinstance(value, (int,)):
+                    GL.glUniform1i(loc, int(value))
+                else:
+                    try:
+                        GL.glUniform1f(loc, float(value))
+                    except Exception:
+                        pass
+        finally:
+            self.shader_program.deactivate()
+
     def setup_buffers(self):
         """
         attributes: mapping of attribute location -> numpy array of shape (N, C)

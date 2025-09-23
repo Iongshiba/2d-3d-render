@@ -3,12 +3,14 @@
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 color;
 
-out vec3 flat_color;
+out vec3 vColor;
 
 uniform mat4 transform;
+uniform int uColorMode; // 0=FLAT, 1=VERTEX
+uniform vec3 uFlatColor;
 
 void main()
 {
-    flat_color = color;
-    gl_Position = transform * vec4(position, 1.0f);
+    vColor = (uColorMode == 0) ? uFlatColor : color;
+    gl_Position = transform * vec4(position, 1.0);
 }
