@@ -8,8 +8,6 @@ from .config import (
 )
 from .renderer import Renderer
 from .shape import Triangle, Cube, Cylinder, Sphere
-from .registry import ShapeRegistry
-from .scene import Scene, Entity
 
 __all__ = [
     "EngineConfig",
@@ -19,9 +17,6 @@ __all__ = [
     "TextureMode",
     "RenderMode",
     "Renderer",
-    "ShapeRegistry",
-    "Scene",
-    "Entity",
     "Triangle",
     "Cube",
     "Cylinder",
