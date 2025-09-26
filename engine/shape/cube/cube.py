@@ -3,7 +3,6 @@ import numpy as np
 from OpenGL import GL
 
 from graphics.vertex import Vertex
-from libs.context import shader_program, vao_context
 from shape.base import Shape, ShapeCandidate
 
 
@@ -53,7 +52,9 @@ class Cube(Shape):
             5, 1, 4,
         ], dtype=np.uint32)
 
-        self.shape_candidates = [ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors}, indices)]
+        self.shape_candidates = [
+            ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors}, indices)
+        ]
 
         self.setup_buffers()
 
@@ -64,28 +65,17 @@ class Cube(Shape):
         return transform_matrix
 
     def draw(self, app=None):
-        for shape in self.shape_candidates:
-            vao = self.vaos[shape.vao_id]
-            with shader_program(self.shader_program), vao_context(vao):
-                aspect_ratio = 1.0
-                if app and hasattr(app, 'get_aspect_ratio'):
-                    aspect_ratio = app.get_aspect_ratio()
+        aspect_ratio = self.aspect_ratio(app)
 
-                projection = self.project(
-                    fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
-                )
-                translate = self.translate()
-                rotatey = self.rotate('y')
-                rotatex = self.rotate('x')
+        def render(candidate, _):
+            projection = self.project(
+                fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
+            )
+            translate = self.translate()
+            rotatey = self.rotate('y')
+            rotatex = self.rotate('x')
 
-                self.transform([projection, translate, rotatex, rotatey])
+            self.transform([projection, translate, rotatex, rotatey])
+            self._draw_shape(candidate)
 
-                if shape.vao_id in self.ebos:
-                    GL.glDrawElements(
-                        GL.GL_TRIANGLES,
-                        self.ebos[shape.vao_id].indices.size,
-                        GL.GL_UNSIGNED_INT,
-                        None,
-                    )
-                else:
-                    GL.glDrawArrays(shape.draw_mode, 0, shape.vertex_count)
+        self._draw_candidates(app, render)

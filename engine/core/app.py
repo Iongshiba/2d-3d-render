@@ -28,6 +28,7 @@ class App:
         glfw.set_key_callback(self.window, self._on_press)
 
         self.shapes = []
+        self.renderer = None
 
     def _on_press(self, window, key, scancode, action, mods):
         # window   -> the window where the event occurred
@@ -42,6 +43,9 @@ class App:
     def add_shape(self, shape):
         self.shapes.append(shape)
 
+    def add_renderer(self, renderer):
+        self.renderer = renderer
+
     def get_aspect_ratio(self):
         return self.width / self.height
 
@@ -49,13 +53,17 @@ class App:
         while not glfw.window_should_close(self.window):
             # Clear once per frame
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-            for shape in self.shapes:
-                # Check if shape.draw accepts app parameter
+            if self.shapes:
+                for shape in self.shapes:
+                    try:
+                        shape.draw(self)
+                    except TypeError:
+                        shape.draw()
+            elif self.renderer:
                 try:
-                    shape.draw(self)
+                    self.renderer.draw(self)
                 except TypeError:
-                    # Fallback for shapes that don't accept app parameter
-                    shape.draw()
+                    self.renderer.draw()
 
             glfw.poll_events()
             glfw.swap_buffers(self.window)

@@ -3,7 +3,6 @@ import numpy as np
 from OpenGL import GL
 
 from graphics.vertex import Vertex
-from libs.context import shader_program, vao_context
 from shape.base import Shape, ShapeCandidate
 
 
@@ -25,17 +24,16 @@ class Triangle(Shape):
             o.color.flatten() for o in vertex_objects
         ], dtype=np.float32)
 
-        self.shape_candidates = [ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})]
+        self.shape_candidates = [
+            ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})
+        ]
         self.setup_buffers()
 
-    def draw(self):
-        for shape in self.shape_candidates:
-            vao = self.vaos[shape.vao_id]
-            with shader_program(self.shader_program), vao_context(vao):
-                # transformation
-                translate = self.translate()
-                rotate = self.rotate('y')
-                scale = self.scale(0.5)
-                self.transform([rotate, scale])
+    def draw(self, app=None):
+        def render(candidate, _):
+            rotate = self.rotate('y')
+            scale = self.scale(0.5)
+            self.transform([rotate])
+            self._draw_shape(candidate)
 
-                GL.glDrawArrays(shape.draw_mode, 0, 3)  # Doesn't require EBO
+        self._draw_candidates(app, render)

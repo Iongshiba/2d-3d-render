@@ -6,10 +6,10 @@ import sys
 if sys.platform.startswith("linux"):
     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
 
-from .config import EngineConfig, ShapeConfig
-from .core.app import App
-from .core.enums import ColorMode, RenderMode, ShadingModel, ShapeType, TextureMode
-from .rendering.renderer import Renderer
+from config import EngineConfig, ShapeConfig
+from core.app import App
+from core.enums import ColorMode, RenderMode, ShadingModel, ShapeType, TextureMode
+from rendering.renderer import Renderer
 
 
 def main():
@@ -27,15 +27,16 @@ def main():
             cylinder_radius=0.5,
             cylinder_sectors=20,
             sphere_radius=2.0,
-            sphere_sectors=160,
-            sphere_stacks=161,
+            sphere_sectors=100,
+            sphere_stacks=101,
         ),
     )
 
     app = App(cfg.width, cfg.height)
     renderer = Renderer(cfg)
 
-    app.add_shape(renderer.shape)
+    app.add_renderer(renderer)
+    # app.add_shape(renderer.shape)
     app.run()
 
 

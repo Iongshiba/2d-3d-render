@@ -2,10 +2,11 @@ import numpy as np
 
 from OpenGL import GL
 from functools import reduce
+from typing import Callable, Iterable, Sequence
 
 from graphics.buffer import VBO, VAO, EBO
 from graphics.shader import Shader, ShaderProgram
-from libs.context import shader_program, vao_context
+from utils import shader_program, vao_context
 
 
 class ShapeCandidate:
@@ -59,12 +60,15 @@ class Shape:
             [0, 0, 0, 1],
         ], dtype=np.float32)
 
-        self.transform_loc = GL.glGetUniformLocation(self.shader_program.program, "transform")
+        self.transform_loc = GL.glGetUniformLocation(
+            self.shader_program.program, "transform"
+        )
         with shader_program(self.shader_program):
             GL.glUniformMatrix4fv(
                 self.transform_loc, 1, GL.GL_TRUE, self.transform_matrix
             )
 
+    # TODO haven't used yet
     def set_uniforms(self, uniforms: dict[str, float | int | tuple] | None = None):
         if not uniforms:
             return
@@ -112,6 +116,40 @@ class Shape:
                 self.ebos[vao] = ebo
                 self.vaos[vao].add_ebo(ebo)
 
+    def _draw_candidates(
+        self,
+        app,
+        handler: Callable[["ShapeCandidate", object | None], None],
+    ) -> None:
+        """Iterate through shape candidates with shader and VAO bound."""
+
+        for candidate in self.shape_candidates:
+            vao = self.vaos[candidate.vao_id]
+            with shader_program(self.shader_program), vao_context(vao):
+                handler(candidate, app)
+
+    def _draw_shape(self, candidate: "ShapeCandidate") -> None:
+        """Issue the appropriate draw call for a candidate."""
+
+        if candidate.indices is not None:
+            gl_type = (
+                GL.GL_UNSIGNED_INT
+                if candidate.indices.dtype == np.uint32
+                else GL.GL_UNSIGNED_SHORT
+            )
+            GL.glDrawElements(
+                candidate.draw_mode, int(candidate.indices.size), gl_type, None
+            )
+        else:
+            GL.glDrawArrays(candidate.draw_mode, 0, int(candidate.vertex_count))
+
+    def aspect_ratio(self, app) -> float:
+        """Safely retrieve the app's aspect ratio (defaults to 1.0)."""
+
+        if app and hasattr(app, "get_aspect_ratio"):
+            return float(app.get_aspect_ratio())
+        return 1.0
+
     def transform(self, matrix):
         # Accept a single matrix/function or a list of them.
         items = matrix
@@ -119,7 +157,7 @@ class Shape:
             items = [items]
 
         # Update an animation parameter if desired
-        if self.alpha <= -10 or self.alpha >= 30:
+        if self.alpha <= -5 or self.alpha >= 5:
             self.delta *= -1
         self.alpha += self.delta
 
@@ -175,20 +213,3 @@ class Shape:
         proj[3, 2] = -1.0
         # proj[3, 3] stays 0
         return proj
-        
-    # def draw(self):
-    #     self.shader_program.activate()
-    #     self.vao.activate()
-
-    #     if self.indices is not None:
-    #         gl_type = (
-    #             GL.GL_UNSIGNED_INT
-    #             if self.indices.dtype == np.uint32
-    #             else GL.GL_UNSIGNED_SHORT
-    #         )
-    #         GL.glDrawElements(GL.GL_TRIANGLES, int(self.indices.size), gl_type, None)
-    #     else:
-    #         GL.glDrawArrays(GL.GL_TRIANGLES, 0, int(self.vertex_count))
-
-    #     self.vao.deactivate()
-    #     self.shader_program.deactivate()

@@ -2,8 +2,8 @@ import numpy as np
 
 from OpenGL import GL
 
-from utils import vertices_to_coords, vertices_to_colors
-from libs.vertex import Vertex
+from utils import *
+from graphics.vertex import Vertex
 from shape.base import Shape, ShapeCandidate
 
 
@@ -89,14 +89,9 @@ class Sphere(Shape):
         return transform_matrix
 
     def draw(self, app=None):
-        self.shader_program.activate()
-        for shape in self.shape_candidates:
-            self.vaos[shape.vao_id].activate()
+        aspect_ratio = self.aspect_ratio(app)
 
-            aspect_ratio = 1.0
-            if app and hasattr(app, "get_aspect_ratio"):
-                aspect_ratio = app.get_aspect_ratio()
-
+        def render(candidate, _):
             project = self.project(
                 fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
             )
@@ -105,8 +100,6 @@ class Sphere(Shape):
             rotatey = self.rotate("y")
 
             self.transform([project, translate, rotatex, rotatey])
+            self._draw_shape(candidate)
 
-            GL.glDrawArrays(shape.draw_mode, 0, shape.vertex_count)
-
-            self.vaos[shape.vao_id].deactivate()
-        self.shader_program.deactivate()
+        self._draw_candidates(app, render)

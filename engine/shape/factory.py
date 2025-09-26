@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable, Dict
 
-from ..config import EngineConfig
-from ..core.enums import ShapeType
+from config import EngineConfig
+from core.enums import ShapeType
 from .base import Shape
 from .cube.cube import Cube
 from .cylinder.cylinder import Cylinder
@@ -67,8 +67,8 @@ ShapeFactory.register_shape(
 ShapeFactory.register_shape(
     ShapeType.SPHERE,
     lambda cfg: Sphere(
-        _shader_path("cylinder", "cylinder.vert"),
-        _shader_path("cylinder", "cylinder.frag"),
+        _shader_path("sphere", "sphere.vert"),
+        _shader_path("sphere", "sphere.frag"),
         cfg.shape_config.sphere_radius,
         cfg.shape_config.sphere_sectors,
         cfg.shape_config.sphere_stacks,
@@ -77,23 +77,3 @@ ShapeFactory.register_shape(
 
 
 __all__ = ["ShapeFactory"]
-
-
-class ShapeFactory:
-    _shapes = {
-        ShapeType.TRIANGLE: Triangle,
-        ShapeType.CUBE: Cube,
-        ShapeType.CYLINDER: Cylinder,
-        ShapeType.SPHERE: Sphere,
-    }
-
-    @classmethod
-    def create_shape(cls, shape_type: ShapeType, *args, **kwargs):
-        shape_class = cls._shapes.get(shape_type)
-        if not shape_class:
-            raise ValueError(f"Unknown shape type: {shape_type}")
-        return shape_class(*args, **kwargs)
-
-    @classmethod
-    def register_shape(cls, shape_type: ShapeType, shape_class):
-        cls._shapes[shape_type] = shape_class

@@ -3,7 +3,6 @@ import numpy as np
 from OpenGL import GL
 
 from graphics.vertex import Vertex
-from libs.context import shader_program, vao_context
 from shape.base import Shape, ShapeCandidate
 
 # fmt: off
@@ -62,20 +61,17 @@ class Cylinder(Shape):
         return transform_matrix
         
     def draw(self, app=None):
-        for shape in self.shape_candidates:
-            vao = self.vaos[shape.vao_id]
-            with shader_program(self.shader_program), vao_context(vao):
-                aspect_ratio = 1.0
-                if app and hasattr(app, 'get_aspect_ratio'):
-                    aspect_ratio = app.get_aspect_ratio()
+        aspect_ratio = self.aspect_ratio(app)
 
-                project = self.project(
-                    fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
-                )
-                translate = self.translate()
-                rotatex = self.rotate('x')
-                rotatey = self.rotate('y')
+        def render(candidate, _):
+            project = self.project(
+                fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
+            )
+            translate = self.translate()
+            rotatex = self.rotate('x')
+            rotatey = self.rotate('y')
 
-                self.transform([project, translate, rotatex, rotatey])
+            self.transform([project, translate, rotatex, rotatey])
+            self._draw_shape(candidate)
 
-                GL.glDrawArrays(shape.draw_mode, 0, shape.vertex_count)
+        self._draw_candidates(app, render)

@@ -7,7 +7,7 @@ from typing import Any
 
 from OpenGL import GL
 
-from ...config import EngineConfig
+from config import EngineConfig
 
 
 class RenderingStrategy(ABC):

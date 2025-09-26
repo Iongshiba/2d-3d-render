@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Tuple
 
-from ..core.enums import (
+from core.enums import (
     ColorMode,
     RenderMode,
     ShadingModel,
