@@ -2,7 +2,8 @@ import numpy as np
 
 from OpenGL import GL
 
-from libs.vertex import Vertex
+from graphics.vertex import Vertex
+from libs.context import shader_program, vao_context
 from shape.base import Shape, ShapeCandidate
 
 
@@ -63,25 +64,28 @@ class Cube(Shape):
         return transform_matrix
 
     def draw(self, app=None):
-        self.shader_program.activate()
         for shape in self.shape_candidates:
-            self.vaos[shape.vao_id].activate()
+            vao = self.vaos[shape.vao_id]
+            with shader_program(self.shader_program), vao_context(vao):
+                aspect_ratio = 1.0
+                if app and hasattr(app, 'get_aspect_ratio'):
+                    aspect_ratio = app.get_aspect_ratio()
 
-            aspect_ratio = 1.0
-            if app and hasattr(app, 'get_aspect_ratio'):
-                aspect_ratio = app.get_aspect_ratio()
+                projection = self.project(
+                    fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
+                )
+                translate = self.translate()
+                rotatey = self.rotate('y')
+                rotatex = self.rotate('x')
 
-            projection = self.project(fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0)
-            translate = self.translate()
-            rotatey = self.rotate('y')
-            rotatex = self.rotate('x')
-            
-            self.transform([projection, translate, rotatex, rotatey])
+                self.transform([projection, translate, rotatex, rotatey])
 
-            if shape.vao_id in self.ebos:
-                GL.glDrawElements(GL.GL_TRIANGLES, self.ebos[shape.vao_id].indices.size, GL.GL_UNSIGNED_INT, None)
-            else:
-                GL.glDrawArrays(shape.draw_mode, 0, shape.vertex_count)
-
-            self.vaos[shape.vao_id].deactivate()
-        self.shader_program.deactivate()
+                if shape.vao_id in self.ebos:
+                    GL.glDrawElements(
+                        GL.GL_TRIANGLES,
+                        self.ebos[shape.vao_id].indices.size,
+                        GL.GL_UNSIGNED_INT,
+                        None,
+                    )
+                else:
+                    GL.glDrawArrays(shape.draw_mode, 0, shape.vertex_count)

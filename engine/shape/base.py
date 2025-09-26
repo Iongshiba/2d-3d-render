@@ -3,8 +3,9 @@ import numpy as np
 from OpenGL import GL
 from functools import reduce
 
-from libs.buffer import VBO, VAO, EBO
-from libs.shader import Shader, ShaderProgram
+from graphics.buffer import VBO, VAO, EBO
+from graphics.shader import Shader, ShaderProgram
+from libs.context import shader_program, vao_context
 
 
 class ShapeCandidate:
@@ -59,21 +60,23 @@ class Shape:
         ], dtype=np.float32)
 
         self.transform_loc = GL.glGetUniformLocation(self.shader_program.program, "transform")
-        self.shader_program.activate()
-        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.transform_matrix)
-        self.shader_program.deactivate()
+        with shader_program(self.shader_program):
+            GL.glUniformMatrix4fv(
+                self.transform_loc, 1, GL.GL_TRUE, self.transform_matrix
+            )
 
     def set_uniforms(self, uniforms: dict[str, float | int | tuple] | None = None):
         if not uniforms:
             return
-        self.shader_program.activate()
-        try:
+        with shader_program(self.shader_program):
             for name, value in uniforms.items():
                 loc = GL.glGetUniformLocation(self.shader_program.program, name)
                 if loc == -1:
                     continue
                 if isinstance(value, (tuple, list)) and len(value) == 3:
-                    GL.glUniform3f(loc, float(value[0]), float(value[1]), float(value[2]))
+                    GL.glUniform3f(
+                        loc, float(value[0]), float(value[1]), float(value[2])
+                    )
                 elif isinstance(value, (int,)):
                     GL.glUniform1i(loc, int(value))
                 else:
@@ -81,8 +84,6 @@ class Shape:
                         GL.glUniform1f(loc, float(value))
                     except Exception:
                         pass
-        finally:
-            self.shader_program.deactivate()
 
     def setup_buffers(self):
         """
@@ -125,7 +126,8 @@ class Shape:
         # Multiply in the provided order: e.g., [projection, view, model]
         # With gl_Position = transform * vec4(pos,1), this applies model first, then view, then projection.
         final = reduce(np.dot, items)
-        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, final)
+        with shader_program(self.shader_program):
+            GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, final)
 
     def scale(self, factor=1):
         transform_matrix = np.copy(self.transform_matrix)

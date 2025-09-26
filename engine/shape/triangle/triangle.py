@@ -2,7 +2,8 @@ import numpy as np
 
 from OpenGL import GL
 
-from libs.vertex import Vertex
+from graphics.vertex import Vertex
+from libs.context import shader_program, vao_context
 from shape.base import Shape, ShapeCandidate
 
 
@@ -28,17 +29,13 @@ class Triangle(Shape):
         self.setup_buffers()
 
     def draw(self):
-        self.shader_program.activate()
         for shape in self.shape_candidates:
-            self.vaos[shape.vao_id].activate()
+            vao = self.vaos[shape.vao_id]
+            with shader_program(self.shader_program), vao_context(vao):
+                # transformation
+                translate = self.translate()
+                rotate = self.rotate('y')
+                scale = self.scale(0.5)
+                self.transform([rotate, scale])
 
-            # transformation
-            translate = self.translate()
-            rotate = self.rotate('y')
-            scale = self.scale(0.5)
-            self.transform([rotate, scale])
-
-            GL.glDrawArrays(shape.draw_mode, 0, 3)  # Doesn't require EBO
-
-            self.vaos[shape.vao_id].deactivate()
-        self.shader_program.deactivate()
+                GL.glDrawArrays(shape.draw_mode, 0, 3)  # Doesn't require EBO
