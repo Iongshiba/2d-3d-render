@@ -6,11 +6,14 @@ layout (location = 1) in vec3 color;
 out vec3 vColor;
 
 uniform mat4 transform;
+uniform mat4 camera;
+uniform mat4 project;
+
 uniform int uColorMode; // 0=FLAT, 1=VERTEX
 uniform vec3 uFlatColor;
 
 void main()
 {
-    gl_Position = transform * vec4(position, 1.0);
     vColor = (uColorMode == 0) ? uFlatColor : color;
+    gl_Position = project * camera * transform * vec4(position, 1.0);
 }

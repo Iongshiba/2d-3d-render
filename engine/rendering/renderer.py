@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from OpenGL import GL
 
-from config import EngineConfig
+from config import CameraConfig, EngineConfig
 from core.enums import ColorMode, RenderMode, ShadingModel, TextureMode
 from shape.factory import ShapeFactory
 from rendering.strategies import (
@@ -10,12 +10,14 @@ from rendering.strategies import (
     RenderingStrategy,
     WireframeRenderingStrategy,
 )
+from rendering.camera import Camera, CameraMovement
 from utils import shader_program, vao_context
 
 
 class Renderer:
     def __init__(self, config: EngineConfig):
         self.config = config
+        self.camera = Camera(config.camera)
         self.shape = ShapeFactory.create_shape(config.shape, config)
 
         # GL state (simple defaults)
@@ -56,9 +58,16 @@ class Renderer:
                 GL.glUniform1i(loc, int(self.config.texture.value))
 
     def draw(self, app=None):
+        aspect_ratio = (
+            float(app.get_aspect_ratio())
+            if app and hasattr(app, "get_aspect_ratio")
+            else float(self.config.width) / float(self.config.height)
+        )
+        self.camera.apply_to_shape(self.shape, aspect_ratio)
+
         # Provide uniforms for color/shading/texture modes if shaders support them
-        self._apply_mode_uniforms()
-        self._strategy.apply_to_shape(self.shape)
+        # self._apply_mode_uniforms()
+        # self._strategy.apply_to_shape(self.shape)
 
         # Delegate drawing to the shape (it handles its own transforms)
         try:
@@ -74,3 +83,11 @@ class Renderer:
         self._strategy = self._strategies[mode]
         self._strategy.setup_gl_state(self.config)
         self._apply_mode_uniforms()
+
+    def move_camera(self, movement: CameraMovement, step_scale: float = 1.0) -> None:
+        self.camera.process_keyboard(movement, step_scale)
+
+    def reconfigure_camera(self, camera_config: CameraConfig) -> None:
+        """Replace the active camera configuration at runtime."""
+
+        self.camera.apply_config(camera_config)

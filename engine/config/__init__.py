@@ -25,8 +25,22 @@ class ShapeConfig:
     cylinder_sectors: int = 20
 
     sphere_radius: float = 2.0
-    sphere_sectors: int = 160
-    sphere_stacks: int = 161
+    sphere_sectors: int = 40
+    # TODO handle any sphere_stacks
+    sphere_stacks: int = 41
+
+
+@dataclass(slots=True)
+class CameraConfig:
+    """Camera configuration parameters for initial setup."""
+
+    position: Tuple[float, float, float] = (0.0, 0.0, 3.0)
+    target: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    up: Tuple[float, float, float] = (0.0, 1.0, 0.0)
+    fov: float = 70.0
+    near_plane: float = 0.1
+    far_plane: float = 100.0
+    move_speed: float = 0.25
 
 
 @dataclass(slots=True)
@@ -42,6 +56,7 @@ class EngineConfig:
     render_mode: RenderMode = RenderMode.FILL
     flat_color: RGBColor = (0.8, 0.2, 0.9)
     shape_config: ShapeConfig = field(default_factory=ShapeConfig)
+    camera: CameraConfig = field(default_factory=CameraConfig)
 
     @classmethod
     def from_dict(cls, config_dict: Mapping[str, Any]) -> "EngineConfig":
@@ -54,7 +69,13 @@ class EngineConfig:
             if isinstance(shape_values, ShapeConfig)
             else ShapeConfig(**shape_values)
         )
-        return cls(shape_config=shape_config, **data)
+        camera_values = data.pop("camera", {})
+        camera_config = (
+            camera_values
+            if isinstance(camera_values, CameraConfig)
+            else CameraConfig(**camera_values)
+        )
+        return cls(shape_config=shape_config, camera=camera_config, **data)
 
     def update(self, updates: Mapping[str, Any]) -> None:
         """Update configuration fields from a mapping."""
@@ -68,6 +89,14 @@ class EngineConfig:
                     self.shape_config = value
                 else:
                     raise TypeError("shape_config must be mapping or ShapeConfig")
+            elif key == "camera":
+                if isinstance(value, Mapping):
+                    for attr, nested_value in value.items():
+                        setattr(self.camera, attr, nested_value)
+                elif isinstance(value, CameraConfig):
+                    self.camera = value
+                else:
+                    raise TypeError("camera must be mapping or CameraConfig")
             elif hasattr(self, key):
                 setattr(self, key, value)
             else:
@@ -81,4 +110,4 @@ class EngineConfig:
         raise AttributeError(f"{type(self).__name__!s} has no attribute {item!r}")
 
 
-__all__ = ["EngineConfig", "ShapeConfig", "RGBColor"]
+__all__ = ["EngineConfig", "ShapeConfig", "CameraConfig", "RGBColor"]

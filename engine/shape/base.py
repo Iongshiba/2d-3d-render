@@ -53,41 +53,34 @@ class Shape:
 
         self.delta = 0.00005
         self.alpha = 1.0
-        self.transform_matrix = np.array([
+        self.identity = np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 1, 0],
             [0, 0, 0, 1],
         ], dtype=np.float32)
+        self.transform_matrix = np.copy(self.identity)
 
         self.transform_loc = GL.glGetUniformLocation(
             self.shader_program.program, "transform"
         )
+        self.camera_loc = GL.glGetUniformLocation(
+            self.shader_program.program, "camera"
+        )
+        self.project_loc = GL.glGetUniformLocation(
+            self.shader_program.program, "project"
+        )
+
         with shader_program(self.shader_program):
             GL.glUniformMatrix4fv(
-                self.transform_loc, 1, GL.GL_TRUE, self.transform_matrix
+                self.transform_loc, 1, GL.GL_TRUE, self.identity
             )
-
-    # TODO haven't used yet
-    def set_uniforms(self, uniforms: dict[str, float | int | tuple] | None = None):
-        if not uniforms:
-            return
-        with shader_program(self.shader_program):
-            for name, value in uniforms.items():
-                loc = GL.glGetUniformLocation(self.shader_program.program, name)
-                if loc == -1:
-                    continue
-                if isinstance(value, (tuple, list)) and len(value) == 3:
-                    GL.glUniform3f(
-                        loc, float(value[0]), float(value[1]), float(value[2])
-                    )
-                elif isinstance(value, (int,)):
-                    GL.glUniform1i(loc, int(value))
-                else:
-                    try:
-                        GL.glUniform1f(loc, float(value))
-                    except Exception:
-                        pass
+            GL.glUniformMatrix4fv(
+                self.camera_loc, 1, GL.GL_TRUE, self.identity
+            )
+            GL.glUniformMatrix4fv(
+                self.project_loc, 1, GL.GL_TRUE, self.identity
+            )
 
     def setup_buffers(self):
         """
@@ -150,6 +143,10 @@ class Shape:
             return float(app.get_aspect_ratio())
         return 1.0
 
+    # TODO create a transform class that accept transform
+    # maybe implement visitor pattern for this transform since camera also is a transform
+    #
+    
     def transform(self, matrix):
         # Accept a single matrix/function or a list of them.
         items = matrix
@@ -168,20 +165,20 @@ class Shape:
             GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, final)
 
     def scale(self, factor=1):
-        transform_matrix = np.copy(self.transform_matrix)
+        transform_matrix = np.copy(self.identity)
         transform_matrix[0, 0] = np.float32(factor)
         transform_matrix[1, 1] = np.float32(factor)
         transform_matrix[2, 2] = np.float32(factor)
         return transform_matrix
 
     def translate(self):
-        transform_matrix = np.copy(self.transform_matrix)
+        transform_matrix = np.copy(self.identity)
         transform_matrix[2, 3] = self.alpha
         # transform_matrix[1, 3] = self.alpha
         return transform_matrix
     
     def rotate(self, axis='x'):
-        transform_matrix = np.copy(self.transform_matrix)
+        transform_matrix = np.copy(self.identity)
         rotation = np.array([
             [np.cos(self.alpha), -np.sin(self.alpha)],
             [np.sin(self.alpha), np.cos(self.alpha)],
@@ -197,19 +194,17 @@ class Shape:
             transform_matrix[0:2, 0:2] = rotation
         return transform_matrix
 
-    def project(self, fov=90.0, aspect_ratio=1.0, near=0.1, far=100.0):
-        fov_rad = np.radians(fov)
-        f = np.float32(1.0 / np.tan(fov_rad / 2.0))
-        
-        # Standard right-handed perspective matrix (row-major here; we pass transpose=True to OpenGL)
-        # x' = (f/aspect) * x, y' = f * y
-        # z' = (far+near)/(near-far) * z + (2*far*near)/(near-far)
-        # w' = -z
-        proj = np.zeros((4, 4), dtype=np.float32)
-        proj[0, 0] = f / np.float32(aspect_ratio)
-        proj[1, 1] = f
-        proj[2, 2] = (far + near) / (near - far)
-        proj[2, 3] = (2.0 * far * near) / (near - far)
-        proj[3, 2] = -1.0
-        # proj[3, 3] stays 0
-        return proj
+    def set_camera_matrices(
+        self,
+        view_matrix: np.ndarray,
+        projection_matrix: np.ndarray,
+    ) -> None:
+        with shader_program(self.shader_program):
+            if self.camera_loc != -1:
+                GL.glUniformMatrix4fv(
+                    self.camera_loc, 1, GL.GL_TRUE, view_matrix
+                )
+            if self.project_loc != -1:
+                GL.glUniformMatrix4fv(
+                    self.project_loc, 1, GL.GL_TRUE, projection_matrix
+                )

@@ -6,9 +6,15 @@ import sys
 if sys.platform.startswith("linux"):
     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
 
-from config import EngineConfig, ShapeConfig
+from config import EngineConfig, ShapeConfig, CameraConfig
 from core.app import App
-from core.enums import ColorMode, RenderMode, ShadingModel, ShapeType, TextureMode
+from core.enums import (
+    ColorMode,
+    RenderMode,
+    ShadingModel,
+    ShapeType,
+    TextureMode,
+)
 from rendering.renderer import Renderer
 
 
@@ -27,9 +33,10 @@ def main():
             cylinder_radius=0.5,
             cylinder_sectors=20,
             sphere_radius=2.0,
-            sphere_sectors=100,
-            sphere_stacks=101,
+            sphere_sectors=40,
+            sphere_stacks=41,
         ),
+        camera=CameraConfig(move_speed=1),
     )
 
     app = App(cfg.width, cfg.height)
