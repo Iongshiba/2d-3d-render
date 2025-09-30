@@ -3,7 +3,13 @@ from __future__ import annotations
 from OpenGL import GL
 
 from config import CameraConfig, EngineConfig
-from core.enums import ColorMode, RenderMode, ShadingModel, TextureMode
+from core.enums import (
+    ColorMode,
+    RenderMode,
+    ShadingModel,
+    ShapeType,
+    TextureMode,
+)
 from shape.factory import ShapeFactory
 from rendering.strategies import (
     FillRenderingStrategy,
@@ -11,7 +17,8 @@ from rendering.strategies import (
     WireframeRenderingStrategy,
 )
 from rendering.camera import Camera, CameraMovement
-from utils import shader_program, vao_context
+from utils import shader_program
+from rendering.world import Transform
 
 
 class Renderer:
@@ -19,13 +26,14 @@ class Renderer:
         self.config = config
         self.camera = Camera(config.camera)
         self.shape = ShapeFactory.create_shape(config.shape, config)
+        self.world = Transform()
 
         # GL state (simple defaults)
         GL.glViewport(0, 0, self.config.width, self.config.height)
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_BACK)
-        GL.glFrontFace(GL.GL_CCW)
+        GL.glFrontFace(GL.GL_CW)
         GL.glClearColor(0.1, 0.1, 0.12, 1.0)
 
         # TODO Implement Rendering strategy for Wireframe and fill
@@ -57,23 +65,30 @@ class Renderer:
             if loc != -1:
                 GL.glUniform1i(loc, int(self.config.texture.value))
 
-    def draw(self, app=None):
+    def render(self, app=None):
         aspect_ratio = (
             float(app.get_aspect_ratio())
             if app and hasattr(app, "get_aspect_ratio")
             else float(self.config.width) / float(self.config.height)
         )
-        self.camera.apply_to_shape(self.shape, aspect_ratio)
+        self.camera.aspect_ratio = aspect_ratio
+
+        projection_matrix = self.camera.get_projection_matrix()
+        view_matrix = self.camera.get_view_matrix()
+        rotationx_matrix = self.world.get_rotate_matrix("x")
+        rotationy_matrix = self.world.get_rotate_matrix("y")
+        model_matrix = self.world.combine([rotationx_matrix, rotationy_matrix])
+        self.shape.transform([projection_matrix, view_matrix, model_matrix])
 
         # Provide uniforms for color/shading/texture modes if shaders support them
         # self._apply_mode_uniforms()
         # self._strategy.apply_to_shape(self.shape)
 
-        # Delegate drawing to the shape (it handles its own transforms)
-        try:
-            self.shape.draw(app)
-        except TypeError:
-            self.shape.draw()
+        self.shape.draw(app)
+
+    # Backwards compatibility for existing code paths
+    def draw(self, app=None):  # pragma: no cover - legacy alias
+        self.render(app)
 
     # TODO haven't use yet
     def set_render_mode(self, mode: RenderMode) -> None:

@@ -80,10 +80,7 @@ class App:
                     except TypeError:
                         shape.draw()
             elif self.renderer:
-                try:
-                    self.renderer.draw(self)
-                except TypeError:
-                    self.renderer.draw()
+                self.renderer.render(self)
 
             glfw.poll_events()
             glfw.swap_buffers(self.window)

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, replace
-from typing import Iterable
+from dataclasses import replace
 
 import numpy as np
 
@@ -90,28 +89,6 @@ class Camera:
         proj[2, 3] = (2.0 * far * near) / (near - far)
         proj[3, 2] = -1.0
         return proj
-
-    def apply_to_shape(self, shape, aspect_ratio: float | None = None) -> None:
-        if aspect_ratio is not None:
-            self.aspect_ratio = aspect_ratio
-
-        view = self.get_view_matrix()
-        projection = self.get_projection_matrix()
-
-        if hasattr(shape, "set_camera_matrices"):
-            shape.set_camera_matrices(view, projection)
-        else:
-            shape.lookat(
-                self.position.tolist(),
-                (self.position + self.front).tolist(),
-                self.up.tolist(),
-            )
-            shape.project(
-                fov=self.config.fov,
-                aspect_ratio=self.aspect_ratio,
-                near=self.config.near_plane,
-                far=self.config.far_plane,
-            )
 
     def _recalculate_basis(self) -> None:
         self.front = self._safe_normalize(self.front)

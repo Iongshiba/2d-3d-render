@@ -28,12 +28,3 @@ class Triangle(Shape):
             ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})
         ]
         self.setup_buffers()
-
-    def draw(self, app=None):
-        def render(candidate, _):
-            rotate = self.rotate('y')
-            scale = self.scale(0.5)
-            self.transform([rotate])
-            self._draw_shape(candidate)
-
-        self._draw_candidates(app, render)

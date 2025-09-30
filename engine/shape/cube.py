@@ -57,20 +57,3 @@ class Cube(Shape):
         ]
 
         self.setup_buffers()
-
-    def translate(self):
-        transform_matrix = np.copy(self.identity)
-        # Move the cube back along -Z so it falls within the perspective frustum
-        transform_matrix[2, 3] = -2
-        return transform_matrix
-
-    def draw(self, app=None):
-        def render(candidate, _):
-            translate = self.translate()
-            rotatey = self.rotate('y')
-            rotatex = self.rotate('x')
-
-            self.transform([translate, rotatex, rotatey])
-            self._draw_shape(candidate)
-
-        self._draw_candidates(app, render)

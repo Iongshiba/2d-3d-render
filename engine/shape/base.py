@@ -2,7 +2,7 @@ import numpy as np
 
 from OpenGL import GL
 from functools import reduce
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Iterable
 
 from graphics.buffer import VBO, VAO, EBO
 from graphics.shader import Shader, ShaderProgram
@@ -51,15 +51,15 @@ class Shape:
         self.indices: np.ndarray | None = None
         self.vertex_count: int = 0
 
-        self.delta = 0.00005
-        self.alpha = 1.0
-        self.identity = np.array([
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-        ], dtype=np.float32)
-        self.transform_matrix = np.copy(self.identity)
+        self.identity = np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
 
         self.transform_loc = GL.glGetUniformLocation(
             self.shader_program.program, "transform"
@@ -136,75 +136,45 @@ class Shape:
         else:
             GL.glDrawArrays(candidate.draw_mode, 0, int(candidate.vertex_count))
 
-    def aspect_ratio(self, app) -> float:
-        """Safely retrieve the app's aspect ratio (defaults to 1.0)."""
+    def transform(self, matrices: Iterable[np.ndarray]) -> None:
+        """Upload ordered projection, view, and model matrices."""
 
-        if app and hasattr(app, "get_aspect_ratio"):
-            return float(app.get_aspect_ratio())
-        return 1.0
+        if not isinstance(matrices, (list, tuple)):
+            matrices = [matrices]
 
-    # TODO create a transform class that accept transform
-    # maybe implement visitor pattern for this transform since camera also is a transform
-    #
-    
-    def transform(self, matrix):
-        # Accept a single matrix/function or a list of them.
-        items = matrix
-        if not isinstance(items, (list, tuple)):
-            items = [items]
+        prepared = [np.array(m, dtype=np.float32) for m in matrices]
 
-        # Update an animation parameter if desired
-        if self.alpha <= -5 or self.alpha >= 5:
-            self.delta *= -1
-        self.alpha += self.delta
+        project_matrix = self.identity
+        view_matrix = self.identity
+        model_matrix = self.identity
 
-        # Multiply in the provided order: e.g., [projection, view, model]
-        # With gl_Position = transform * vec4(pos,1), this applies model first, then view, then projection.
-        final = reduce(np.dot, items)
+        if prepared:
+            project_matrix = prepared[0]
+        if len(prepared) >= 2:
+            view_matrix = prepared[1]
+        if len(prepared) >= 3:
+            model_parts = prepared[2:]
+            if len(model_parts) == 1:
+                model_matrix = model_parts[0]
+            else:
+                model_matrix = reduce(np.dot, model_parts)
+
         with shader_program(self.shader_program):
-            GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, final)
-
-    def scale(self, factor=1):
-        transform_matrix = np.copy(self.identity)
-        transform_matrix[0, 0] = np.float32(factor)
-        transform_matrix[1, 1] = np.float32(factor)
-        transform_matrix[2, 2] = np.float32(factor)
-        return transform_matrix
-
-    def translate(self):
-        transform_matrix = np.copy(self.identity)
-        transform_matrix[2, 3] = self.alpha
-        # transform_matrix[1, 3] = self.alpha
-        return transform_matrix
-    
-    def rotate(self, axis='x'):
-        transform_matrix = np.copy(self.identity)
-        rotation = np.array([
-            [np.cos(self.alpha), -np.sin(self.alpha)],
-            [np.sin(self.alpha), np.cos(self.alpha)],
-        ], dtype=np.float32)
-        if axis == 'x':
-            transform_matrix[1:3, 1:3] = rotation
-        elif axis == 'y':
-            transform_matrix[0, 0] = rotation[0][0]
-            transform_matrix[0, 2] = rotation[0][1]
-            transform_matrix[2, 0] = rotation[1][0]
-            transform_matrix[2, 2] = rotation[1][1]
-        elif axis == 'z':
-            transform_matrix[0:2, 0:2] = rotation
-        return transform_matrix
-
-    def set_camera_matrices(
-        self,
-        view_matrix: np.ndarray,
-        projection_matrix: np.ndarray,
-    ) -> None:
-        with shader_program(self.shader_program):
+            if self.project_loc != -1:
+                GL.glUniformMatrix4fv(
+                    self.project_loc, 1, GL.GL_TRUE, project_matrix
+                )
             if self.camera_loc != -1:
                 GL.glUniformMatrix4fv(
                     self.camera_loc, 1, GL.GL_TRUE, view_matrix
                 )
-            if self.project_loc != -1:
+            if self.transform_loc != -1:
                 GL.glUniformMatrix4fv(
-                    self.project_loc, 1, GL.GL_TRUE, projection_matrix
+                    self.transform_loc, 1, GL.GL_TRUE, model_matrix
                 )
+
+    def draw(self, app=None):
+        def render(candidate, _):
+            self._draw_shape(candidate)
+
+        self._draw_candidates(app, render)
