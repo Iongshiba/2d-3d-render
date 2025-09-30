@@ -67,39 +67,15 @@ class Sphere(Shape):
         bottom_coords = vertices_to_coords(bottom)
         bottom_colors = vertices_to_colors(bottom)
 
-        self.shape_candidates = [
-            ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
-            ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
-            *[
-                ShapeCandidate(
-                    i + 2,
-                    GL.GL_TRIANGLE_STRIP,
-                    {0: vertices_to_coords(side), 1: vertices_to_colors(side)},
-                )
-                for i, side in enumerate(sides)
-            ],
-        ]
-
-        self.setup_buffers()
-
-    def translate(self):
-        transform_matrix = np.copy(self.transform_matrix)
-        # Move the cube back along -Z so it falls within the perspective frustum
-        transform_matrix[2, 3] = -5
-        return transform_matrix
-
-    def draw(self, app=None):
-        aspect_ratio = self.aspect_ratio(app)
-
-        def render(candidate, _):
-            project = self.project(
-                fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
-            )
-            translate = self.translate()
-            rotatex = self.rotate("x")
-            rotatey = self.rotate("y")
-
-            self.transform([project, translate, rotatex, rotatey])
-            self._draw_shape(candidate)
-
-        self._draw_candidates(app, render)
+        # self.shape_candidates = [
+        #     ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
+        #     ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
+        #     *[
+        #         ShapeCandidate(
+        #             i + 2,
+        #             GL.GL_TRIANGLE_STRIP,
+        #             {0: vertices_to_coords(side), 1: vertices_to_colors(side)},
+        #         )
+        #         for i, side in enumerate(sides)
+        #     ],
+        # ]

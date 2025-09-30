@@ -8,18 +8,21 @@ from typing import Callable, Dict
 from config import EngineConfig
 from core.enums import ShapeType
 from .base import Shape
-from .cube.cube import Cube
-from .cylinder.cylinder import Cylinder
-from .sphere.sphere import Sphere
-from .triangle.triangle import Triangle
+from .cube import Cube
+from .cylinder import Cylinder
+from .sphere import Sphere
+from .triangle import Triangle
 
 FactoryCallback = Callable[[EngineConfig], Shape]
-
-_SHADER_ROOT = Path(__file__).resolve().parent
 
 
 def _shader_path(*parts: str) -> str:
     return str(_SHADER_ROOT.joinpath(*parts).resolve())
+
+
+_SHADER_ROOT = Path(__file__).resolve().parent.parent
+_VERTEX_PATH = _shader_path("graphics", "shape.vert")
+_FRAGMENT_PATH = _shader_path("graphics", "shape.frag")
 
 
 class ShapeFactory:
@@ -40,24 +43,24 @@ class ShapeFactory:
 ShapeFactory.register_shape(
     ShapeType.TRIANGLE,
     lambda cfg: Triangle(
-        _shader_path("triangle", "triangle.vert"),
-        _shader_path("triangle", "triangle.frag"),
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.CUBE,
     lambda cfg: Cube(
-        _shader_path("cube", "cube.vert"),
-        _shader_path("cube", "cube.frag"),
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.CYLINDER,
     lambda cfg: Cylinder(
-        _shader_path("cylinder", "cylinder.vert"),
-        _shader_path("cylinder", "cylinder.frag"),
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
         cfg.shape_config.cylinder_height,
         cfg.shape_config.cylinder_radius,
         cfg.shape_config.cylinder_sectors,
@@ -67,8 +70,8 @@ ShapeFactory.register_shape(
 ShapeFactory.register_shape(
     ShapeType.SPHERE,
     lambda cfg: Sphere(
-        _shader_path("sphere", "sphere.vert"),
-        _shader_path("sphere", "sphere.frag"),
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
         cfg.shape_config.sphere_radius,
         cfg.shape_config.sphere_sectors,
         cfg.shape_config.sphere_stacks,

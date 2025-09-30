@@ -37,6 +37,7 @@ class Cylinder(Shape):
         bottom_colors = np.array(
             [o.color.flatten() for o in bottom_circle], dtype=np.float32
         )
+
         side_coords = np.empty((top_coords.shape[0] + bottom_coords.shape[0] - 2, top_coords.shape[1]), dtype=np.float32)
         side_coords[0::2] = top_coords[1:]
         side_coords[1::2] = bottom_coords[1:]
@@ -46,32 +47,8 @@ class Cylinder(Shape):
 
         bottom_coords *= -1
 
-        self.shape_candidates = [
-            ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
-            ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
-            ShapeCandidate(2, GL.GL_TRIANGLE_STRIP, {0: side_coords, 1: side_colors}),
-        ]
-
-        self.setup_buffers()
-
-    def translate(self):
-        transform_matrix = np.copy(self.transform_matrix)
-        # Move the cube back along -Z so it falls within the perspective frustum
-        transform_matrix[2, 3] = -3
-        return transform_matrix
-        
-    def draw(self, app=None):
-        aspect_ratio = self.aspect_ratio(app)
-
-        def render(candidate, _):
-            project = self.project(
-                fov=70, aspect_ratio=aspect_ratio, near=0.1, far=100.0
-            )
-            translate = self.translate()
-            rotatex = self.rotate('x')
-            rotatey = self.rotate('y')
-
-            self.transform([project, translate, rotatex, rotatey])
-            self._draw_shape(candidate)
-
-        self._draw_candidates(app, render)
+        # self.shape_candidates = [
+        #     ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
+        #     ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
+        #     ShapeCandidate(2, GL.GL_TRIANGLE_STRIP, {0: side_coords, 1: side_colors}),
+        # ]

@@ -1,36 +1,36 @@
 from OpenGL import GL
 
 
-class VBO:
-    def __init__(
-        self,
-        location,
-        data,
-        ncomponents=3,
-        dtype=GL.GL_FLOAT,
-        normalized=False,
-        stride=0,
-        offset=None,
-    ):
-        self.vbo = GL.glGenBuffers(1)
+# class VBO:
+#     def __init__(
+#         self,
+#         location,
+#         data,
+#         ncomponents=3,
+#         dtype=GL.GL_FLOAT,
+#         normalized=False,
+#         stride=0,
+#         offset=None,
+#     ):
+#         self.vbo = GL.glGenBuffers(1)
 
-        self.activate()
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, data, GL.GL_STATIC_DRAW)
-        self.deactivate()
+#         self.activate()
+#         GL.glBufferData(GL.GL_ARRAY_BUFFER, data, GL.GL_STATIC_DRAW)
+#         self.deactivate()
 
-        self.location = location
-        self.data = data
-        self.ncomponents = ncomponents
-        self.dtype = dtype
-        self.normalized = normalized
-        self.stride = stride
-        self.offset = offset
+#         self.location = location
+#         self.data = data
+#         self.ncomponents = ncomponents
+#         self.dtype = dtype
+#         self.normalized = normalized
+#         self.stride = stride
+#         self.offset = offset
 
-    def activate(self):
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
+#     def activate(self):
+#         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
 
-    def deactivate(self):
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+#     def deactivate(self):
+#         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
 
 class EBO:
@@ -50,36 +50,36 @@ class EBO:
         GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, self.ebo)
 
     def deactivate(self):
-        GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0)
+#         GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0)
 
-
+# fmt: off
 class VAO:
     def __init__(self):
         self.vao = GL.glGenVertexArrays(1)
-        GL.glBindVertexArray(self.vao)
-        GL.glBindVertexArray(0)
         self.vbos = {}
         self.ebo = None
 
-    def add_vbo(self, vbo):
+    def add_vbo(self, location, data, ncomponents, dtype, normalized, stride, offset):
         self.activate()
-        vbo.activate()
 
-        # location = GL.glGetAttribLocation(self.shader.render_idx, name)
+        vbo = GL.glGenBuffers(1)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo)
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, data, GL.GL_STATIC_DRAW)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        self.vbos[vbo.location] = vbo
+
         GL.glVertexAttribPointer(
-            vbo.location,
-            vbo.ncomponents,
-            vbo.dtype,
-            vbo.normalized,
-            vbo.stride,
-            vbo.offset,
+            location,
+            ncomponents,
+            dtype,
+            normalized,
+            stride,
+            offset,
         )
         GL.glEnableVertexAttribArray(
             vbo.location
         )  # the number of this call match the number of (layout = n) in .vert file
-        self.vbos[vbo.location] = vbo
 
-        vbo.deactivate()
         self.deactivate()
 
     def add_ebo(self, ebo):

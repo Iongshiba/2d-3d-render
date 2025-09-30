@@ -5,6 +5,13 @@ from __future__ import annotations
 from enum import Enum, auto
 
 
+class CameraMovement(Enum):
+    FORWARD = auto()
+    BACKWARD = auto()
+    LEFT = auto()
+    RIGHT = auto()
+
+
 class ShapeType(Enum):
     TRIANGLE = auto()
     CUBE = auto()
@@ -33,6 +40,7 @@ class RenderMode(Enum):
 
 
 __all__ = [
+    "CameraMovement",
     "ShapeType",
     "ColorMode",
     "ShadingModel",
