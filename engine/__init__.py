@@ -6,7 +6,7 @@ from .config import (
     TextureMode,
     RenderMode,
 )
-from .renderer import Renderer
+from .rendering.renderer import Renderer
 from .shape import Triangle, Cube, Cylinder, Sphere
 
 __all__ = [

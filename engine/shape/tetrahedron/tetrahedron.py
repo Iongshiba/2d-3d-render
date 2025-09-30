@@ -2,8 +2,8 @@ import numpy as np
 
 from OpenGL import GL
 
-from libs.buffer import VBO, VAO, EBO
-from libs.shader import Shader, ShaderProgram
+from graphics.buffer import VBO, VAO, EBO
+from graphics.shader import Shader, ShaderProgram
 
 
 class Tetrahedron:
