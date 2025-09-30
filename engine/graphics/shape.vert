@@ -9,11 +9,8 @@ uniform mat4 transform;
 uniform mat4 camera;
 uniform mat4 project;
 
-uniform int uColorMode; // 0=FLAT, 1=VERTEX
-uniform vec3 uFlatColor;
-
 void main()
 {
-    vColor = (uColorMode == 0) ? uFlatColor : color;
+    vColor = color;
     gl_Position = project * camera * transform * vec4(position, 1.0);
 }

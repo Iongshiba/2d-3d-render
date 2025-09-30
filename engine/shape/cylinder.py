@@ -37,6 +37,7 @@ class Cylinder(Shape):
         bottom_colors = np.array(
             [o.color.flatten() for o in bottom_circle], dtype=np.float32
         )
+
         side_coords = np.empty((top_coords.shape[0] + bottom_coords.shape[0] - 2, top_coords.shape[1]), dtype=np.float32)
         side_coords[0::2] = top_coords[1:]
         side_coords[1::2] = bottom_coords[1:]
@@ -46,10 +47,8 @@ class Cylinder(Shape):
 
         bottom_coords *= -1
 
-        self.shape_candidates = [
-            ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
-            ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
-            ShapeCandidate(2, GL.GL_TRIANGLE_STRIP, {0: side_coords, 1: side_colors}),
-        ]
-
-        self.setup_buffers()
+        # self.shape_candidates = [
+        #     ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
+        #     ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
+        #     ShapeCandidate(2, GL.GL_TRIANGLE_STRIP, {0: side_coords, 1: side_colors}),
+        # ]

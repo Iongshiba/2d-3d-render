@@ -55,5 +55,3 @@ class Cube(Shape):
         self.shape_candidates = [
             ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors}, indices)
         ]
-
-        self.setup_buffers()

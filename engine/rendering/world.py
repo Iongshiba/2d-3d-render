@@ -7,14 +7,12 @@ import numpy as np
 
 
 class Transform:
-    def __init__(self) -> None:
+    def __init__(self):
         self.identity = np.identity(4, dtype=np.float32)
         self.alpha: float = 1.0
         self.delta: float = 0.005
 
-    def combine(self, matrices: Iterable[np.ndarray]) -> np.ndarray:
-        """Multiply a sequence of matrices following left-to-right order."""
-
+    def combine(self, matrices):
         mats = [np.array(m, dtype=np.float32) for m in matrices]
         if not mats:
             return self.identity.copy()
@@ -30,23 +28,19 @@ class Transform:
 
         return result
 
-    def get_scale_matrix(self, factor: float = 1.0) -> np.ndarray:
+    def get_scale_matrix(self, factor):
         matrix = self.identity.copy()
         matrix[0, 0] = matrix[1, 1] = matrix[2, 2] = np.float32(factor)
         return matrix
 
-    def get_translate_matrix(
-        self, x: float = 0.0, y: float = 0.0, z: float | None = None
-    ) -> np.ndarray:
+    def get_translate_matrix(self, x=0.0, y=0.0, z=None):
         matrix = self.identity.copy()
         matrix[0, 3] = np.float32(x)
         matrix[1, 3] = np.float32(y)
         matrix[2, 3] = np.float32(z)
         return matrix
 
-    def get_rotate_matrix(
-        self, axis: str = "x", angle: float | None = None
-    ) -> np.ndarray:
+    def get_rotate_matrix(self, axis="x", angle=None):
         angle = float(self.alpha if angle is None else angle)
         c = np.float32(np.cos(angle))
         s = np.float32(np.sin(angle))
@@ -72,11 +66,11 @@ class Transform:
 
     def project(
         self,
-        fov: float = 90.0,
-        aspect_ratio: float = 1.0,
-        near: float = 0.1,
-        far: float = 100.0,
-    ) -> np.ndarray:
+        fov=90.0,
+        aspect_ratio=1.0,
+        near=0.1,
+        far=100.0,
+    ):
         fov_rad = np.radians(fov)
         f = np.float32(1.0 / np.tan(fov_rad / 2.0))
         near = np.float32(near)
@@ -93,10 +87,10 @@ class Transform:
 
     def look_at(
         self,
-        camera_pos: Sequence[float],
-        target_pos: Sequence[float],
-        world_up: Sequence[float] = (0.0, 1.0, 0.0),
-    ) -> np.ndarray:
+        camera_pos,
+        target_pos,
+        world_up=(0.0, 1.0, 0.0),
+    ):
         camera_pos = np.array(camera_pos, dtype=np.float32)
         target_pos = np.array(target_pos, dtype=np.float32)
         world_up = np.array(world_up, dtype=np.float32)
@@ -120,7 +114,7 @@ class Transform:
         return np.dot(rotate, translate)
 
     @staticmethod
-    def _normalize(vector: np.ndarray) -> np.ndarray:
+    def _normalize(vector):
         norm = float(np.linalg.norm(vector))
         if norm < 1e-6:
             return np.zeros_like(vector)

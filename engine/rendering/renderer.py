@@ -22,7 +22,7 @@ from rendering.world import Transform
 
 
 class Renderer:
-    def __init__(self, config: EngineConfig):
+    def __init__(self, config):
         self.config = config
         self.camera = Camera(config.camera)
         self.shape = ShapeFactory.create_shape(config.shape, config)
@@ -33,37 +33,8 @@ class Renderer:
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_BACK)
-        GL.glFrontFace(GL.GL_CW)
+        GL.glFrontFace(GL.GL_CCW)
         GL.glClearColor(0.1, 0.1, 0.12, 1.0)
-
-        # TODO Implement Rendering strategy for Wireframe and fill
-        self._strategies: dict[RenderMode, RenderingStrategy] = {
-            RenderMode.FILL: FillRenderingStrategy(),
-            RenderMode.WIREFRAME: WireframeRenderingStrategy(),
-        }
-        self._strategy: RenderingStrategy = self._strategies[self.config.render_mode]
-        self._strategy.setup_gl_state(self.config)
-
-        self._apply_mode_uniforms()
-
-    def _apply_mode_uniforms(self):
-        program = getattr(self.shape, "shader_program", None)
-        if program is None:
-            return
-        with shader_program(program):
-            loc = GL.glGetUniformLocation(program.program, "uColorMode")
-            if loc != -1:
-                GL.glUniform1i(loc, int(self.config.color_mode.value))
-            loc = GL.glGetUniformLocation(program.program, "uFlatColor")
-            if loc != -1:
-                r, g, b = self.config.flat_color
-                GL.glUniform3f(loc, float(r), float(g), float(b))
-            loc = GL.glGetUniformLocation(program.program, "uShadingModel")
-            if loc != -1:
-                GL.glUniform1i(loc, int(self.config.shading.value))
-            loc = GL.glGetUniformLocation(program.program, "uTextureMode")
-            if loc != -1:
-                GL.glUniform1i(loc, int(self.config.texture.value))
 
     def render(self, app=None):
         aspect_ratio = (
@@ -79,30 +50,7 @@ class Renderer:
         rotationy_matrix = self.world.get_rotate_matrix("y")
         model_matrix = self.world.combine([rotationx_matrix, rotationy_matrix])
         self.shape.transform([projection_matrix, view_matrix, model_matrix])
-
-        # Provide uniforms for color/shading/texture modes if shaders support them
-        # self._apply_mode_uniforms()
-        # self._strategy.apply_to_shape(self.shape)
-
-        self.shape.draw(app)
-
-    # Backwards compatibility for existing code paths
-    def draw(self, app=None):  # pragma: no cover - legacy alias
-        self.render(app)
-
-    # TODO haven't use yet
-    def set_render_mode(self, mode: RenderMode) -> None:
-        if mode not in self._strategies:
-            raise ValueError(f"Unsupported render mode: {mode!r}")
-        self.config.render_mode = mode
-        self._strategy = self._strategies[mode]
-        self._strategy.setup_gl_state(self.config)
-        self._apply_mode_uniforms()
+        self.shape.draw()
 
     def move_camera(self, movement: CameraMovement, step_scale: float = 1.0) -> None:
         self.camera.process_keyboard(movement, step_scale)
-
-    def reconfigure_camera(self, camera_config: CameraConfig) -> None:
-        """Replace the active camera configuration at runtime."""
-
-        self.camera.apply_config(camera_config)

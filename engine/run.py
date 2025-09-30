@@ -22,7 +22,7 @@ def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.SPHERE,
+        shape=ShapeType.CYLINDER,
         color_mode=ColorMode.VERTEX,
         shading=ShadingModel.NONE,
         texture=TextureMode.NONE,

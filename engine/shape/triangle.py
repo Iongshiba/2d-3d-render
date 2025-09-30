@@ -24,7 +24,6 @@ class Triangle(Shape):
             o.color.flatten() for o in vertex_objects
         ], dtype=np.float32)
 
-        self.shape_candidates = [
-            ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})
-        ]
-        self.setup_buffers()
+        # self.shape_candidates = [
+        #     ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors})
+        # ]

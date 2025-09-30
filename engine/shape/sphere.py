@@ -67,17 +67,15 @@ class Sphere(Shape):
         bottom_coords = vertices_to_coords(bottom)
         bottom_colors = vertices_to_colors(bottom)
 
-        self.shape_candidates = [
-            ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
-            ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
-            *[
-                ShapeCandidate(
-                    i + 2,
-                    GL.GL_TRIANGLE_STRIP,
-                    {0: vertices_to_coords(side), 1: vertices_to_colors(side)},
-                )
-                for i, side in enumerate(sides)
-            ],
-        ]
-
-        self.setup_buffers()
+        # self.shape_candidates = [
+        #     ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
+        #     ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
+        #     *[
+        #         ShapeCandidate(
+        #             i + 2,
+        #             GL.GL_TRIANGLE_STRIP,
+        #             {0: vertices_to_coords(side), 1: vertices_to_colors(side)},
+        #         )
+        #         for i, side in enumerate(sides)
+        #     ],
+        # ]
