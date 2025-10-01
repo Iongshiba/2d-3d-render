@@ -46,8 +46,8 @@ class Cylinder(Shape):
         side_colors[0::2] = top_colors[1:]
         side_colors[1::2] = bottom_colors[1:]
 
-        np.flip(bottom_coords)
-        np.flip(bottom_colors)
+        bottom_coords[1:] = bottom_coords[:0:-1]
+        bottom_colors[1:] = bottom_colors[:0:-1]
 
         top_vao = VAO()
         top_vao.add_vbo(
