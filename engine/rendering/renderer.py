@@ -34,7 +34,7 @@ class Renderer:
         GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_BACK)
         GL.glFrontFace(GL.GL_CCW)
-        GL.glClearColor(0.1, 0.1, 0.12, 1.0)
+        GL.glClearColor(0.07, 0.07, 0.07, 1.0)
 
     def render(self, app=None):
         aspect_ratio = (
@@ -48,8 +48,15 @@ class Renderer:
         view_matrix = self.camera.get_view_matrix()
         rotationx_matrix = self.world.get_rotate_matrix("x")
         rotationy_matrix = self.world.get_rotate_matrix("y")
+        translate_matrix = self.world.get_translate_matrix(0, 0, 0)
+        identity_matrix = self.world.get_identity_matrix()
+        print(view_matrix)
         model_matrix = self.world.combine([rotationx_matrix, rotationy_matrix])
-        self.shape.transform([projection_matrix, view_matrix, model_matrix])
+        self.shape.transform(
+            projection_matrix,
+            view_matrix,
+            model_matrix,
+        )
         self.shape.draw()
 
     def move_camera(self, movement: CameraMovement, step_scale: float = 1.0) -> None:

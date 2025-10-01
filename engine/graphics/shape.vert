@@ -11,6 +11,6 @@ uniform mat4 project;
 
 void main()
 {
-    vColor = color;
     gl_Position = project * camera * transform * vec4(position, 1.0);
+    vColor = color;
 }

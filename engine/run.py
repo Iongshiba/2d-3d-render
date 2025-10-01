@@ -22,12 +22,7 @@ def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.CYLINDER,
-        color_mode=ColorMode.VERTEX,
-        shading=ShadingModel.NONE,
-        texture=TextureMode.NONE,
-        render_mode=RenderMode.FILL,
-        flat_color=(0.2, 0.8, 0.3),
+        shape=ShapeType.SPHERE,
         shape_config=ShapeConfig(
             cylinder_height=1.0,
             cylinder_radius=0.5,
@@ -36,7 +31,12 @@ def main():
             sphere_sectors=40,
             sphere_stacks=41,
         ),
-        camera=CameraConfig(move_speed=1),
+        camera=CameraConfig(
+            move_speed=1,
+            position=(0.0, 0.0, 4.0),
+            target=(0.0, 0.0, 0.0),
+            fov=75,
+        ),
     )
 
     app = App(cfg.width, cfg.height)

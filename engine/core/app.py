@@ -28,7 +28,6 @@ class App:
 
         glfw.set_key_callback(self.window, self._on_press)
 
-        self.shapes = []
         self.renderer = None
         self.pressed_keys = {
             glfw.KEY_W: False,
@@ -52,9 +51,6 @@ class App:
         elif action == glfw.RELEASE and key in self.pressed_keys:
             self.pressed_keys[key] = False
 
-    def add_shape(self, shape):
-        self.shapes.append(shape)
-
     def add_renderer(self, renderer):
         self.renderer = renderer
 
@@ -72,14 +68,6 @@ class App:
 
             if self.renderer is not None:
                 self._update_camera_movement(delta_time)
-
-            if self.shapes:
-                for shape in self.shapes:
-                    try:
-                        shape.draw(self)
-                    except TypeError:
-                        shape.draw()
-            elif self.renderer:
                 self.renderer.render(self)
 
             glfw.poll_events()

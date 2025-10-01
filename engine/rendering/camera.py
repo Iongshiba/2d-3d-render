@@ -62,16 +62,13 @@ class Camera:
         forward = self.front
         right = self.right
         up = self.up
-
-        view = np.identity(4, dtype=np.float32)
-        view[0, 0:3] = right
-        view[1, 0:3] = up
-        view[2, 0:3] = -forward
-
-        view[0, 3] = -np.dot(right, self.position)
-        view[1, 3] = -np.dot(up, self.position)
-        view[2, 3] = np.dot(forward, self.position)
-        return view
+        rotate = np.identity(4, dtype=np.float32)
+        rotate[0, 0:3] = right
+        rotate[1, 0:3] = up
+        rotate[2, 0:3] = -forward
+        translate = np.identity(4, dtype=np.float32)
+        translate[0:3, 3] = -self.position
+        return np.dot(rotate, translate)
 
     def get_projection_matrix(self):
         fov_rad = np.radians(self.config.fov)

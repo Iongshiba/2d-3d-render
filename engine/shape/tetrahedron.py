@@ -2,27 +2,57 @@ import numpy as np
 
 from OpenGL import GL
 
-from graphics.buffer import VBO, VAO, EBO
-from graphics.shader import Shader, ShaderProgram
+from utils import *
+from graphics.vertex import Vertex
+from graphics.buffer import VAO
+from shape.base import Shape, Part
 
 
-class Tetrahedron:
+class Tetrahedron(Shape):
     def __init__(self, vertex_file, fragment_file):
-        self.vertices = [
-            [-0.5, -0.5, 0.0],
-            [0.5, -0.5, 0.0],
-            [0.0, 0.5, 0.0],
-            [0.0, 0.0, 0.5],
-        ]
-        self.colors = [
-            [1.0, 0.0, 0.0],
-            [1.0, 1.0, 0.0],
-            [1.0, 0.0, 1.0],
-            [0.0, 1.0, 0.0],
-        ]
-        self.vertices = np.array(self.vertices, dtype=np.float32)
-        self.colors = np.array(self.colors, dtype=np.float32)
+        super().__init__(vertex_file, fragment_file)
 
-        vertex_shader = Shader(vertex_file)
-        fragment_shader = Shader(fragment_file)
-        self.shader_program = ShaderProgram()
+        # fmt: off
+        vertices = [
+            Vertex(-1.0,  0.0, -1.0),
+            Vertex( 0.0,  0.0,  1.0),
+            Vertex( 1.0,  0.0, -1.0),
+            Vertex( 0.0,  1.0,  0.0),
+        ]
+        indices = np.array([
+            0, 1, 2,
+            0, 2, 3,
+            1, 0, 3,
+            2, 1, 3,
+        ], dtype=np.int32)
+        # fmt: on
+
+        coords = vertices_to_coords(vertices)
+        colors = vertices_to_colors(vertices)
+
+        vao = VAO()
+        vao.add_vbo(
+            location=0,
+            data=coords,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_vbo(
+            location=1,
+            data=colors,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_ebo(
+            indices,
+        )
+
+        self.shapes.append(
+            Part(vao, GL.GL_TRIANGLES, len(vertices), indices.size),
+        )

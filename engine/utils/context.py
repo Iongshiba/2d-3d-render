@@ -10,8 +10,6 @@ from OpenGL import GL
 
 @contextmanager
 def shader_program(program) -> Iterator[None]:
-    """Bind a shader program for the lifetime of the context."""
-
     current = GL.glGetIntegerv(GL.GL_CURRENT_PROGRAM)
     program_id = getattr(program, "program", None)
     activated = current != program_id
@@ -26,8 +24,6 @@ def shader_program(program) -> Iterator[None]:
 
 @contextmanager
 def vao_context(vao) -> Iterator[None]:
-    """Bind a VAO for the lifetime of the context."""
-
     current = GL.glGetIntegerv(GL.GL_VERTEX_ARRAY_BINDING)
     vao_id = getattr(vao, "vao", None)
     activated = current != vao_id

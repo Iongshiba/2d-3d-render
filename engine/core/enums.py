@@ -14,6 +14,7 @@ class CameraMovement(Enum):
 
 class ShapeType(Enum):
     TRIANGLE = auto()
+    TETRAHEDRON = auto()
     CUBE = auto()
     CYLINDER = auto()
     SPHERE = auto()

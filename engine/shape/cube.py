@@ -3,7 +3,7 @@ import numpy as np
 from OpenGL import GL
 
 from graphics.vertex import Vertex
-from shape.base import Shape, ShapeCandidate
+from shape.base import Shape
 
 
 # fmt: off

@@ -34,10 +34,10 @@ class ShapeConfig:
 class CameraConfig:
     """Camera configuration parameters for initial setup."""
 
-    position: Tuple[float, float, float] = (0.0, 0.0, 3.0)
+    position: Tuple[float, float, float] = (0.0, 0.0, 5.0)
     target: Tuple[float, float, float] = (0.0, 0.0, 0.0)
     up: Tuple[float, float, float] = (0.0, 1.0, 0.0)
-    fov: float = 70.0
+    fov: float = 75.0
     near_plane: float = 0.1
     far_plane: float = 100.0
     move_speed: float = 0.25
@@ -50,11 +50,6 @@ class EngineConfig:
     width: int = 1000
     height: int = 1000
     shape: ShapeType = ShapeType.SPHERE
-    color_mode: ColorMode = ColorMode.VERTEX
-    shading: ShadingModel = ShadingModel.NONE
-    texture: TextureMode = TextureMode.NONE
-    render_mode: RenderMode = RenderMode.FILL
-    flat_color: RGBColor = (0.8, 0.2, 0.9)
     shape_config: ShapeConfig = field(default_factory=ShapeConfig)
     camera: CameraConfig = field(default_factory=CameraConfig)
 

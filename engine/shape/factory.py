@@ -7,11 +7,7 @@ from typing import Callable, Dict
 
 from config import EngineConfig
 from core.enums import ShapeType
-from .base import Shape
-from .cube import Cube
-from .cylinder import Cylinder
-from .sphere import Sphere
-from .triangle import Triangle
+from shape import *
 
 FactoryCallback = Callable[[EngineConfig], Shape]
 
@@ -43,6 +39,14 @@ class ShapeFactory:
 ShapeFactory.register_shape(
     ShapeType.TRIANGLE,
     lambda cfg: Triangle(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.TETRAHEDRON,
+    lambda cfg: Tetrahedron(
         _VERTEX_PATH,
         _FRAGMENT_PATH,
     ),

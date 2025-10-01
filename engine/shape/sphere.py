@@ -3,8 +3,9 @@ import numpy as np
 from OpenGL import GL
 
 from utils import *
+from graphics.buffer import VAO
 from graphics.vertex import Vertex
-from shape.base import Shape, ShapeCandidate
+from shape.base import Shape, Part
 
 
 # fmt: on
@@ -21,7 +22,7 @@ class Sphere(Shape):
 
         sectors = np.linspace(0, 2 * np.pi, sector + 1)
         stacks = np.linspace(-np.pi / 2.0, np.pi / 2.0, stack)
-        X, Y = np.meshgrid(sectors, stacks, indexing="xy")
+
         top = [Vertex(0, 0, radius)]
         bottom = [Vertex(0, 0, -radius)]
 
@@ -45,37 +46,94 @@ class Sphere(Shape):
 
         for stack_idx in range(len(stacks) - 1):
             stack = stacks[stack_idx]
-            side = []
             for sector_idx in range(len(sectors)):
                 sector = sectors[sector_idx]
-                side += [
-                    Vertex(
-                        radius * np.cos(sector) * np.cos(stacks[stack_idx]),
-                        radius * np.sin(sector) * np.cos(stacks[stack_idx]),
-                        radius * np.sin(stacks[stack_idx]),
-                    ),
-                    Vertex(
-                        radius * np.cos(sector) * np.cos(stacks[stack_idx + 1]),
-                        radius * np.sin(sector) * np.cos(stacks[stack_idx + 1]),
-                        radius * np.sin(stacks[stack_idx + 1]),
-                    ),
-                ]
-            sides.append(side)
+                sides.extend(
+                    [
+                        Vertex(
+                            radius * np.cos(sector) * np.cos(stacks[stack_idx]),
+                            radius * np.sin(sector) * np.cos(stacks[stack_idx]),
+                            radius * np.sin(stacks[stack_idx]),
+                        ),
+                        Vertex(
+                            radius * np.cos(sector) * np.cos(stacks[stack_idx + 1]),
+                            radius * np.sin(sector) * np.cos(stacks[stack_idx + 1]),
+                            radius * np.sin(stacks[stack_idx + 1]),
+                        ),
+                    ]
+                )
 
         top_coords = vertices_to_coords(top)
         top_colors = vertices_to_colors(top)
         bottom_coords = vertices_to_coords(bottom)
         bottom_colors = vertices_to_colors(bottom)
+        side_coords = vertices_to_coords(sides)
+        side_colors = vertices_to_colors(sides)
 
-        # self.shape_candidates = [
-        #     ShapeCandidate(0, GL.GL_TRIANGLE_FAN, {0: top_coords, 1: top_colors}),
-        #     ShapeCandidate(1, GL.GL_TRIANGLE_FAN, {0: bottom_coords, 1: bottom_colors}),
-        #     *[
-        #         ShapeCandidate(
-        #             i + 2,
-        #             GL.GL_TRIANGLE_STRIP,
-        #             {0: vertices_to_coords(side), 1: vertices_to_colors(side)},
-        #         )
-        #         for i, side in enumerate(sides)
-        #     ],
-        # ]
+        # top_vao = VAO()
+        # top_vao.add_vbo(
+        #     location=0,
+        #     data=top_coords,
+        #     ncomponents=3,
+        #     dtype=GL.GL_FLOAT,
+        #     normalized=False,
+        #     stride=0,
+        #     offset=None,
+        # )
+        # top_vao.add_vbo(
+        #     location=1,
+        #     data=top_colors,
+        #     ncomponents=3,
+        #     dtype=GL.GL_FLOAT,
+        #     normalized=False,
+        #     stride=0,
+        #     offset=None,
+        # )
+
+        # bottom_vao = VAO()
+        # bottom_vao.add_vbo(
+        #     location=0,
+        #     data=bottom_coords,
+        #     ncomponents=3,
+        #     dtype=GL.GL_FLOAT,
+        #     normalized=False,
+        #     stride=0,
+        #     offset=None,
+        # )
+        # bottom_vao.add_vbo(
+        #     location=1,
+        #     data=bottom_colors,
+        #     ncomponents=3,
+        #     dtype=GL.GL_FLOAT,
+        #     normalized=False,
+        #     stride=0,
+        #     offset=None,
+        # )
+
+        side_vao = VAO()
+        side_vao.add_vbo(
+            location=0,
+            data=side_coords,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        side_vao.add_vbo(
+            location=1,
+            data=side_colors,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+
+        self.shapes.extend(
+            [
+                # Part(top_vao, GL.GL_TRIANGLE_FAN, top_coords.shape[0]),
+                # Part(bottom_vao, GL.GL_TRIANGLE_FAN, bottom_coords.shape[0]),
+                Part(side_vao, GL.GL_TRIANGLE_STRIP, side_coords.shape[0]),
+            ]
+        )

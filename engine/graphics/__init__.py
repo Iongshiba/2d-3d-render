@@ -1,4 +1,4 @@
-from .buffer import VAO, VBO, EBO
+from .buffer import VAO
 from .shader import Shader, ShaderProgram
 
 __all__ = [
