@@ -10,31 +10,25 @@ from core.enums import CameraMovement
 
 class Camera:
     def __init__(self, config=None):
-        self.config = CameraConfig() if config is None else replace(config)
-        self.aspect_ratio: float = 1.0
+        self.aspect_ratio = 1.0
+        self.world_up = np.array([0.0, 1.0, 0.0], dtype=np.float32)
 
         # Internal state vectors
-        self.position: np.ndarray
-        self.front: np.ndarray
-        self.world_up: np.ndarray
-        self.right: np.ndarray
-        self.up: np.ndarray
+        self.position = np.array(config.position, dtype=np.float32)
+        self.front = np.array(config.front, dtype=np.float32)
+        self.up = np.array(config.up, dtype=np.float32)
+        self.right = np.array(config.right, dtype=np.float32)
+        self.yaw = np.float32(config.yaw)
+        self.pitch = np.float32(config.pitch)
 
-        self.apply_config(self.config)
-
-    def apply_config(self, config):
-        self.config = replace(config)
-        self.position = np.array(self.config.position, dtype=np.float32)
-        self.world_up = self._safe_normalize(np.array(self.config.up, dtype=np.float32))
-
-        front = np.array(self.config.target, dtype=np.float32) - self.position
-        if np.linalg.norm(front) < 1e-6:
-            front = np.array([0.0, 0.0, -1.0], dtype=np.float32)
-        self.front = self._safe_normalize(front)
-        self._recalculate_basis()
+        self.fov = np.float32(config.fov)
+        self.near_plane = np.float32(config.near_plane)
+        self.far_plane = np.float32(config.far_plane)
+        self.move_speed = np.float32(config.move_speed)
+        self.sensitivity = np.float32(config.sensitivity)
 
     def process_keyboard(self, movement, step_scale=1.0):
-        velocity = float(step_scale) * float(self.config.move_speed)
+        velocity = float(step_scale) * float(self.move_speed)
         if velocity == 0:
             return
         if movement is CameraMovement.FORWARD:
@@ -49,14 +43,31 @@ class Camera:
             return
 
         self.position = self.position + displacement
-        self.config = replace(
-            self.config,
-            position=tuple(float(v) for v in self.position),
-            target=tuple(float(v) for v in (self.position + self.front)),
-        )
+        self._recalculate_basis()
 
-    def process_mouse(self):
-        pass
+    def process_mouse(self, offset=(0.0, 0.0)):
+        yaw_offset = np.float32(offset[0]) * self.sensitivity
+        pitch_offset = np.float32(offset[1]) * self.sensitivity
+        if yaw_offset == 0 and pitch_offset == 0:
+            return
+        self.yaw += -yaw_offset
+        self.pitch += pitch_offset
+
+        cp = np.cos(np.radians(self.pitch))
+        cy = np.cos(np.radians(self.yaw))
+        sp = np.sin(np.radians(self.pitch))
+        sy = np.sin(np.radians(self.yaw))
+
+        # Imagine the camera rotation as a sphere
+        self.front = np.array(
+            [
+                cp * cy,
+                sp,
+                cp * sy,
+            ],
+            dtype=np.float32,
+        )
+        self._recalculate_basis()
 
     def get_view_matrix(self):
         forward = self.front
@@ -71,10 +82,10 @@ class Camera:
         return np.dot(rotate, translate)
 
     def get_projection_matrix(self):
-        fov_rad = np.radians(self.config.fov)
+        fov_rad = np.radians(self.fov)
         f = float(1.0 / np.tan(fov_rad / 2.0))
-        near = float(self.config.near_plane)
-        far = float(self.config.far_plane)
+        near = float(self.near_plane)
+        far = float(self.far_plane)
 
         proj = np.zeros((4, 4), dtype=np.float32)
         proj[0, 0] = f / float(self.aspect_ratio)

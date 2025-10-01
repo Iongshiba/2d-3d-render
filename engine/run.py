@@ -34,7 +34,6 @@ def main():
         camera=CameraConfig(
             move_speed=1,
             position=(0.0, 0.0, 4.0),
-            target=(0.0, 0.0, 0.0),
             fov=75,
         ),
     )

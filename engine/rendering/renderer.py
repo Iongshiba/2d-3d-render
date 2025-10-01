@@ -50,7 +50,6 @@ class Renderer:
         rotationy_matrix = self.world.get_rotate_matrix("y")
         translate_matrix = self.world.get_translate_matrix(0, 0, 0)
         identity_matrix = self.world.get_identity_matrix()
-        print(view_matrix)
         model_matrix = self.world.combine([rotationx_matrix, rotationy_matrix])
         self.shape.transform(
             projection_matrix,
@@ -61,3 +60,9 @@ class Renderer:
 
     def move_camera(self, movement: CameraMovement, step_scale: float = 1.0) -> None:
         self.camera.process_keyboard(movement, step_scale)
+
+    def rotate_camera(self, mouse_offset: tuple[float, float] = (0.0, 0.0)):
+        self.camera.process_mouse(mouse_offset)
+
+    def move_world(self, step_scale: float = 1.0) -> None:
+        self.world.process_time(step_scale)
