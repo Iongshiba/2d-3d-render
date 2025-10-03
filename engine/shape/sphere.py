@@ -32,14 +32,14 @@ class Sphere(Shape):
                 sides.extend(
                     [
                         Vertex(
-                            radius * np.cos(sector) * np.cos(stacks[stack_idx]),
-                            radius * np.sin(sector) * np.cos(stacks[stack_idx]),
-                            radius * np.sin(stacks[stack_idx]),
-                        ),
-                        Vertex(
                             radius * np.cos(sector) * np.cos(stacks[stack_idx + 1]),
                             radius * np.sin(sector) * np.cos(stacks[stack_idx + 1]),
                             radius * np.sin(stacks[stack_idx + 1]),
+                        ),
+                        Vertex(
+                            radius * np.cos(sector) * np.cos(stacks[stack_idx]),
+                            radius * np.sin(sector) * np.cos(stacks[stack_idx]),
+                            radius * np.sin(stacks[stack_idx]),
                         ),
                     ]
                 )
@@ -69,8 +69,6 @@ class Sphere(Shape):
 
         self.shapes.extend(
             [
-                # Part(top_vao, GL.GL_TRIANGLE_FAN, top_coords.shape[0]),
-                # Part(bottom_vao, GL.GL_TRIANGLE_FAN, bottom_coords.shape[0]),
                 Part(side_vao, GL.GL_TRIANGLE_STRIP, side_coords.shape[0]),
             ]
         )

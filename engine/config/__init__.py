@@ -35,12 +35,17 @@ class CameraConfig:
     """Camera configuration parameters for initial setup."""
 
     position: Tuple[float, float, float] = (0.0, 0.0, 5.0)
-    target: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    # target: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    front: Tuple[float, float, float] = (0.0, 0.0, -1.0)
     up: Tuple[float, float, float] = (0.0, 1.0, 0.0)
+    right: Tuple[float, float, float] = (1.0, 0.0, 0.0)
     fov: float = 75.0
     near_plane: float = 0.1
     far_plane: float = 100.0
     move_speed: float = 0.25
+    yaw: float = -90.0
+    pitch: float = 0.0
+    sensitivity: float = 0.1
 
 
 @dataclass(slots=True)

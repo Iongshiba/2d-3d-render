@@ -46,7 +46,8 @@ class Cylinder(Shape):
         side_colors[0::2] = top_colors[1:]
         side_colors[1::2] = bottom_colors[1:]
 
-        bottom_coords *= -1
+        bottom_coords[1:] = bottom_coords[:0:-1]
+        bottom_colors[1:] = bottom_colors[:0:-1]
 
         top_vao = VAO()
         top_vao.add_vbo(
@@ -107,7 +108,7 @@ class Cylinder(Shape):
             stride=0,
             offset=None,
         )
-        
+
         self.shapes.extend(
             [
                 Part(top_vao, GL.GL_TRIANGLE_FAN, top_coords.shape[0]),

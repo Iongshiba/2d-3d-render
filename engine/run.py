@@ -22,7 +22,7 @@ def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.SPHERE,
+        shape=ShapeType.CUBE,
         shape_config=ShapeConfig(
             cylinder_height=1.0,
             cylinder_radius=0.5,
@@ -34,7 +34,6 @@ def main():
         camera=CameraConfig(
             move_speed=1,
             position=(0.0, 0.0, 4.0),
-            target=(0.0, 0.0, 0.0),
             fov=75,
         ),
     )

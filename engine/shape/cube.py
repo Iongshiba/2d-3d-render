@@ -2,8 +2,10 @@ import numpy as np
 
 from OpenGL import GL
 
+from utils import *
 from graphics.vertex import Vertex
-from shape.base import Shape
+from graphics.buffer import VAO
+from shape.base import Shape, Part
 
 
 # fmt: off
@@ -11,7 +13,7 @@ class Cube(Shape):
     def __init__(self, vertex_file, fragment_file):
         super().__init__(vertex_file, fragment_file)
 
-        vertex_objects = [
+        vertices = [
             # back square with normal outside
             Vertex(-0.5, 0.5, -0.5),
             Vertex(0.5, 0.5, -0.5),
@@ -24,12 +26,8 @@ class Cube(Shape):
             Vertex(0.5, -0.5, 0.5),
         ]
         
-        coords = np.array([
-            o.vertex.flatten() for o in vertex_objects
-        ], dtype=np.float32)
-        colors = np.array([
-            o.color.flatten() for o in vertex_objects
-        ], dtype=np.float32)
+        coords = vertices_to_coords(vertices)
+        colors = vertices_to_colors(vertices)
 
         indices = np.array([
             # back with normal go out
@@ -52,6 +50,29 @@ class Cube(Shape):
             5, 1, 4,
         ], dtype=np.uint32)
 
-        self.shape_candidates = [
-            ShapeCandidate(0, GL.GL_TRIANGLES, {0: coords, 1: colors}, indices)
-        ]
+        vao = VAO()
+        vao.add_vbo(
+            location=0,
+            data=coords,
+            ncomponents=coords.shape[1],
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_vbo(
+            location=1,
+            data=colors,
+            ncomponents=colors.shape[1],
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_ebo(
+            indices
+        )
+
+        self.shapes.extend(
+            [Part(vao, GL.GL_TRIANGLE_STRIP, coords.shape[0], indices.shape[0])]
+        )

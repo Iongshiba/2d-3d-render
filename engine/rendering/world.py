@@ -10,16 +10,17 @@ class Transform:
     def __init__(self):
         self.identity = np.identity(4, dtype=np.float32)
         self.alpha: float = 1.0
-        self.delta: float = 0.0005
+        self.speed: float = 0.5
+
+    def process_time(self, step_scale=1.0):
+        if self.alpha <= -10 or self.alpha >= 10:
+            self.speed *= -1
+        self.alpha += self.speed * step_scale
 
     def combine(self, matrices):
         mats = [np.array(m, dtype=np.float32) for m in matrices]
         if not mats:
             return self.identity.copy()
-
-        if self.alpha <= -10 or self.alpha >= 10:
-            self.delta *= -1
-        self.alpha += self.delta
 
         if len(mats) == 1:
             result = mats[0]
@@ -29,25 +30,29 @@ class Transform:
         return result
 
     def get_identity_matrix(self):
-        return np.copy(self.identity)
+        return self.identity.copy()
 
     def get_scale_matrix(self, factor):
         matrix = self.identity.copy()
-        matrix[0, 0] = matrix[1, 1] = matrix[2, 2] = np.float32(factor)
+        scale_value = np.float32(self.alpha if factor is None else factor)
+        matrix[0, 0] = matrix[1, 1] = matrix[2, 2] = scale_value
         return matrix
 
-    def get_translate_matrix(self, x=0.0, y=0.0, z=None):
+    def get_translate_matrix(self, x=0.0, y=0.0, z=0.0):
         matrix = self.identity.copy()
-        matrix[0, 3] = np.float32(x)
-        matrix[1, 3] = np.float32(y)
-        matrix[2, 3] = np.float32(z)
+        x_value = np.float32(self.alpha if x is None else x)
+        y_value = np.float32(self.alpha if y is None else y)
+        z_value = np.float32(self.alpha if z is None else z)
+        matrix[0, 3] = x_value
+        matrix[1, 3] = y_value
+        matrix[2, 3] = z_value
         return matrix
 
     def get_rotate_matrix(self, axis="x", angle=None):
-        angle = float(self.alpha if angle is None else angle)
+        matrix = self.identity.copy()
+        angle = np.float32(self.alpha if angle is None else angle)
         c = np.float32(np.cos(angle))
         s = np.float32(np.sin(angle))
-        matrix = self.identity.copy()
 
         axis = axis.lower()
         if axis == "x":
