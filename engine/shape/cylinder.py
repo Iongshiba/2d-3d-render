@@ -107,9 +107,7 @@ class Cylinder(Shape):
             stride=0,
             offset=None,
         )
-        print(top_coords.shape[0])
-        print(bottom_coords.shape[0])
-        print(side_coords.shape[0])
+        
         self.shapes.extend(
             [
                 Part(top_vao, GL.GL_TRIANGLE_FAN, top_coords.shape[0]),

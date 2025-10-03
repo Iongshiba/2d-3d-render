@@ -56,3 +56,4 @@ class Tetrahedron(Shape):
         self.shapes.append(
             Part(vao, GL.GL_TRIANGLES, len(vertices), indices.size),
         )
+        
