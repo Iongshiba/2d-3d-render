@@ -1,0 +1,54 @@
+import numpy as np
+
+from OpenGL import GL
+
+from utils import *
+from graphics.vertex import Vertex
+from graphics.buffer import VAO
+from shape.base import Shape, Part
+
+
+class Star(Shape):
+    def __init__(self, vertex_file, fragment_file, wing, outer_radius, inner_radius):
+        super().__init__(vertex_file, fragment_file)
+
+        angles = np.linspace(0, 2 * np.pi, wing * 2 + 1)
+        vertices = [Vertex(0.0, 0.0, 0.0)]
+        vertices.extend(
+            [
+                (
+                    Vertex(
+                        outer_radius * np.cos(angle), outer_radius * np.sin(angle), 0.0
+                    )
+                    if i % 2 == 0
+                    else Vertex(
+                        inner_radius * np.cos(angle), inner_radius * np.sin(angle), 0.0
+                    )
+                )
+                for i, angle in enumerate(angles)
+            ]
+        )
+
+        coords = vertices_to_coords(vertices)
+        colors = vertices_to_colors(vertices)
+
+        vao = VAO()
+        vao.add_vbo(
+            location=0,
+            data=coords,
+            ncomponents=coords.shape[1],
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_vbo(
+            location=1,
+            data=colors,
+            ncomponents=colors.shape[1],
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        self.shapes.extend([Part(vao, GL.GL_TRIANGLE_FAN, len(vertices))])

@@ -13,11 +13,24 @@ class CameraMovement(Enum):
 
 
 class ShapeType(Enum):
+    # fmt: off
     TRIANGLE = auto()
-    TETRAHEDRON = auto()
+    RECTANGLE = auto()
+    PENTAGON = auto()           
+    HEXAGON = auto()    #TODO
+    CIRCLE = auto()             #TODO
+    ELLIPSE = auto()            #TODO
+    TRAPEZOID = auto()          #TODO
+    STAR = auto()               #TODO
+    ARROW = auto()              #TODO
     CUBE = auto()
-    CYLINDER = auto()
     SPHERE = auto()
+    CYLINDER = auto()
+    CONE = auto()               #TODO
+    TRUNCATED_CONE = auto()     #TODO
+    TETRAHEDRON = auto()
+    TORUS = auto()              #TODO
+    PRISM = auto()              #TODO
 
 
 class ColorMode(Enum):

@@ -61,7 +61,7 @@ class Cube(Shape):
             offset=None,
         )
         vao.add_vbo(
-            location=1,
+            location=1, 
             data=colors,
             ncomponents=colors.shape[1],
             dtype=GL.GL_FLOAT,

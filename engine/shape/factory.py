@@ -45,6 +45,77 @@ ShapeFactory.register_shape(
 )
 
 ShapeFactory.register_shape(
+    ShapeType.RECTANGLE,
+    lambda cfg: Rectangle(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.PENTAGON,
+    lambda cfg: Pentagon(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.HEXAGON,
+    lambda cfg: Pentagon(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.CIRCLE,
+    lambda cfg: Circle(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.circle_sector,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.ELLIPSE,
+    lambda cfg: Ellipse(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.ellipse_sector,
+        cfg.shape_config.ellipse_a,
+        cfg.shape_config.ellipse_b,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.TRAPEZOID,
+    lambda cfg: Trapezoid(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.STAR,
+    lambda cfg: Star(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.star_wing,
+        cfg.shape_config.star_outer_radius,
+        cfg.shape_config.star_inner_radius,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.ARROW,
+    lambda cfg: Arrow(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+    ),
+)
+
+ShapeFactory.register_shape(
     ShapeType.TETRAHEDRON,
     lambda cfg: Tetrahedron(
         _VERTEX_PATH,

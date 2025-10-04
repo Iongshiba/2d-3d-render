@@ -31,7 +31,8 @@ class Renderer:
         # GL state (simple defaults)
         GL.glViewport(0, 0, self.config.width, self.config.height)
         GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glEnable(GL.GL_CULL_FACE)
+        if config.cull_face:
+            GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_BACK)
         GL.glFrontFace(GL.GL_CCW)
         GL.glClearColor(0.07, 0.07, 0.07, 1.0)

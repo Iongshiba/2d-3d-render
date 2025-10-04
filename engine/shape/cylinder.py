@@ -10,7 +10,7 @@ from shape.base import Shape, Part
 
 # fmt: on
 class Cylinder(Shape):
-    def __init__(self, vertex_file, fragment_file, height, radius, sector):
+    def __init__(self, vertex_file, fragment_file, sector, height, radius):
         super().__init__(vertex_file, fragment_file)
 
         self.height = height

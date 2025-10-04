@@ -29,6 +29,16 @@ class ShapeConfig:
     # TODO handle any sphere_stacks
     sphere_stacks: int = 41
 
+    circle_sector: int = 100
+
+    ellipse_sector: int = 100
+    ellipse_a: int = 3
+    ellipse_b: int = 1
+
+    star_wing: int = 5
+    star_outer_radius: int = 2
+    star_inner_radius: int = 1
+
 
 @dataclass(slots=True)
 class CameraConfig:
@@ -57,6 +67,22 @@ class EngineConfig:
     shape: ShapeType = ShapeType.SPHERE
     shape_config: ShapeConfig = field(default_factory=ShapeConfig)
     camera: CameraConfig = field(default_factory=CameraConfig)
+    cull_face: bool = (
+        True
+        if shape
+        in [
+            ShapeType.TRIANGLE,
+            ShapeType.RECTANGLE,
+            ShapeType.PENTAGON,
+            ShapeType.HEXAGON,
+            ShapeType.CIRCLE,
+            ShapeType.ELLIPSE,
+            ShapeType.TRAPEZOID,
+            ShapeType.STAR,
+            ShapeType.ARROW,
+        ]
+        else False
+    )
 
     @classmethod
     def from_dict(cls, config_dict: Mapping[str, Any]) -> "EngineConfig":
