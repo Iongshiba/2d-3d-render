@@ -55,7 +55,7 @@ class CameraConfig:
     move_speed: float = 0.25
     yaw: float = -90.0
     pitch: float = 0.0
-    sensitivity: float = 0.1
+    sensitivity: float = 0.05
 
 
 @dataclass(slots=True)

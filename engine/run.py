@@ -22,7 +22,7 @@ def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.ARROW,
+        shape=ShapeType.SPHERE,
         shape_config=ShapeConfig(
             # fmt: off
             cylinder_height=1.0,

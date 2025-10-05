@@ -53,6 +53,12 @@ class Camera:
         self.yaw += -yaw_offset
         self.pitch += pitch_offset
 
+        # Clamp pitch to avoid flipping
+        if self.pitch > 89.0:
+            self.pitch = 89.0
+        if self.pitch < -89.0:
+            self.pitch = -89.0
+
         cp = np.cos(np.radians(self.pitch))
         cy = np.cos(np.radians(self.yaw))
         sp = np.sin(np.radians(self.pitch))

@@ -26,9 +26,10 @@ class App:
 
         glfw.make_context_current(self.window)
 
-        glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+        # glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
         glfw.set_key_callback(self.window, self._on_press)
         glfw.set_cursor_pos_callback(self.window, self._on_mouse)
+        glfw.set_mouse_button_callback(self.window, self._on_mouse_press)
 
         self.renderer = None
         self.pressed_keys = {
@@ -42,16 +43,25 @@ class App:
         self.mouse_move = False
         self._last_time = glfw.get_time()
 
+    def _on_mouse_press(self, window, button, action, mods):
+        if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
+            self.mouse_pos = glfw.get_cursor_pos(self.window)
+            self.mouse_offset = (0.0, 0.0)
+            self.mouse_move = True
+        elif action == glfw.RELEASE:
+            self.mouse_move = False
+
     def _on_mouse(self, window, x_pos, y_pos):
         # window   -> the window where the event occured
         # xpos     -> the recorded x position of the mouse
         # ypos     -> the recorded y position of the mouse
 
-        x_offset = self.mouse_pos[0] - x_pos
-        y_offset = self.mouse_pos[1] - y_pos
-        self.mouse_pos = (x_pos, y_pos)
-        self.mouse_offset = (x_offset, y_offset)
-        self.mouse_move = True
+        # print(self.mouse_pos, (x_pos, y_pos))
+        if self.mouse_move:
+            x_offset = self.mouse_pos[0] - x_pos
+            y_offset = self.mouse_pos[1] - y_pos
+            self.mouse_pos = (x_pos, y_pos)
+            self.mouse_offset = (x_offset, y_offset)
 
     def _on_press(self, window, key, scancode, action, mods):
         # window   -> the window where the event occurred
@@ -105,7 +115,6 @@ class App:
 
         if self.mouse_move:
             self.renderer.rotate_camera(self.mouse_offset)
-            self.mouse_move = False
 
         if self.pressed_keys.get(glfw.KEY_W):
             self.renderer.move_camera(CameraMovement.FORWARD, delta_time)
