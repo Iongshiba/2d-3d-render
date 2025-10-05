@@ -12,11 +12,12 @@ class Arrow(Shape):
     def __init__(self, vertex_file, fragment_file):
         super().__init__(vertex_file, fragment_file)
 
+        # fmt: off
         # Arrow head
         triangle_vertices = [
-            Vertex(0.0, 1.0, 0.0),
-            Vertex(-0.5, 0.5, 0.0),
-            Vertex(0.5, 0.5, 0.0),
+            Vertex(0.5, -1.0, 0.0),
+            Vertex(1.0,  0.0, 0.0),
+            Vertex(0.5,  1.0, 0.0),
         ]
 
         triangle_coords = vertices_to_coords(triangle_vertices)
@@ -44,10 +45,10 @@ class Arrow(Shape):
 
         # Arrow body
         rectangle_vertices = [
-            Vertex(-0.2, 0.5, 0.0),
-            Vertex(0.2, 0.5, 0.0),
-            Vertex(-0.2, -1.0, 0.0),
-            Vertex(0.2, -1.0, 0.0),
+            Vertex( -1.0,  0.5, 0.0),
+            Vertex( -1.0, -0.5, 0.0),
+            Vertex(  0.5,  0.5, 0.0),
+            Vertex(  0.5, -0.5, 0.0),
         ]
 
         rectangle_coords = vertices_to_coords(rectangle_vertices)
@@ -75,7 +76,7 @@ class Arrow(Shape):
 
         self.shapes.extend(
             [
-                Part(triangle_vao, GL.GL_TRIANGLE_STRIP, len(rectangle_vertices)),
-                Part(rectangle_vao, GL.GL_TRIANGLE_STRIP, len(triangle_vertices)),
+                Part(triangle_vao, GL.GL_TRIANGLE_STRIP, len(triangle_vertices)),
+                Part(rectangle_vao, GL.GL_TRIANGLE_STRIP, len(rectangle_vertices)),
             ]
         )

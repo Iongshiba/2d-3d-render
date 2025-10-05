@@ -17,20 +17,20 @@ class ShapeType(Enum):
     TRIANGLE = auto()
     RECTANGLE = auto()
     PENTAGON = auto()           
-    HEXAGON = auto()    #TODO
-    CIRCLE = auto()             #TODO
-    ELLIPSE = auto()            #TODO
-    TRAPEZOID = auto()          #TODO
-    STAR = auto()               #TODO
-    ARROW = auto()              #TODO
+    HEXAGON = auto()
+    CIRCLE = auto()
+    ELLIPSE = auto()
+    TRAPEZOID = auto()
+    STAR = auto()
+    ARROW = auto()
     CUBE = auto()
     SPHERE = auto()
     CYLINDER = auto()
-    CONE = auto()               #TODO
-    TRUNCATED_CONE = auto()     #TODO
+    CONE = auto()              
+    TRUNCATED_CONE = auto()    
     TETRAHEDRON = auto()
-    TORUS = auto()              #TODO
-    PRISM = auto()              #TODO
+    TORUS = auto()             
+    EQUATION = auto()
 
 
 class ColorMode(Enum):
