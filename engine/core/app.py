@@ -47,6 +47,7 @@ class App:
         # xpos     -> the recorded x position of the mouse
         # ypos     -> the recorded y position of the mouse
 
+        print(self.mouse_pos, (x_pos, y_pos))
         x_offset = self.mouse_pos[0] - x_pos
         y_offset = self.mouse_pos[1] - y_pos
         self.mouse_pos = (x_pos, y_pos)
