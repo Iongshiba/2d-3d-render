@@ -12,6 +12,10 @@ from .ellipse import Ellipse
 from .trapezoid import Trapezoid
 from .star import Star
 from .arrow import Arrow
+from .cone import Cone
+from .truncated_cone import TruncatedCone
+from .torus import Torus
+from .equation import Equation
 
 __all__ = [
     "Shape",
@@ -28,4 +32,8 @@ __all__ = [
     "Trapezoid",
     "Star",
     "Arrow",
+    "Cone",
+    "TruncatedCone",
+    "Torus",
+    "Equation",
 ]

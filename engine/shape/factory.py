@@ -136,9 +136,32 @@ ShapeFactory.register_shape(
     lambda cfg: Cylinder(
         _VERTEX_PATH,
         _FRAGMENT_PATH,
+        cfg.shape_config.cylinder_sectors,
         cfg.shape_config.cylinder_height,
         cfg.shape_config.cylinder_radius,
-        cfg.shape_config.cylinder_sectors,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.CONE,
+    lambda cfg: Cone(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.cone_height,
+        cfg.shape_config.cone_radius,
+        cfg.shape_config.cone_sectors,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.TRUNCATED_CONE,
+    lambda cfg: TruncatedCone(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.truncated_height,
+        cfg.shape_config.truncated_top_radius,
+        cfg.shape_config.truncated_bottom_radius,
+        cfg.shape_config.truncated_sectors,
     ),
 )
 
@@ -153,5 +176,27 @@ ShapeFactory.register_shape(
     ),
 )
 
+ShapeFactory.register_shape(
+    ShapeType.TORUS,
+    lambda cfg: Torus(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.torus_sectors,
+        cfg.shape_config.torus_stacks,
+        cfg.shape_config.torus_horizontal_radius,
+        cfg.shape_config.torus_vertical_radius,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.EQUATION,
+    lambda cfg: Equation(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.equation_expression,
+        cfg.shape_config.equation_mesh_size,
+        cfg.shape_config.equation_mesh_density,
+    ),
+)
 
 __all__ = ["ShapeFactory"]

@@ -39,6 +39,24 @@ class ShapeConfig:
     star_outer_radius: int = 2
     star_inner_radius: int = 1
 
+    cone_height: float = 1.0
+    cone_radius: float = 0.5
+    cone_sectors: int = 20
+
+    truncated_height: float = 1.0
+    truncated_top_radius: float = 0.3
+    truncated_bottom_radius: float = 0.5
+    truncated_sectors: int = 20
+
+    torus_sectors: int = 50
+    torus_stacks: int = 50
+    torus_horizontal_radius: float = 10.0
+    torus_vertical_radius: float = 5.0
+
+    equation_expression: str = "x + y"
+    equation_mesh_size: int = 10
+    equation_mesh_density: int = 100
+
 
 @dataclass(slots=True)
 class CameraConfig:
@@ -55,7 +73,19 @@ class CameraConfig:
     move_speed: float = 0.25
     yaw: float = -90.0
     pitch: float = 0.0
-    sensitivity: float = 0.1
+    sensitivity: float = 0.05
+
+
+@dataclass(slots=True)
+class TrackballConfig:
+    """Trackball configuration parameters for initial setup."""
+
+    yaw: float = 0.0
+    roll: float = 0.0
+    pitch: float = 0.0
+    distance: float = 10.0
+    radians: bool = None
+    pan_sensitivity: float = 0.001
 
 
 @dataclass(slots=True)
@@ -67,6 +97,7 @@ class EngineConfig:
     shape: ShapeType = ShapeType.SPHERE
     shape_config: ShapeConfig = field(default_factory=ShapeConfig)
     camera: CameraConfig = field(default_factory=CameraConfig)
+    trackball: TrackballConfig = field(default_factory=TrackballConfig)
     cull_face: bool = (
         True
         if shape
@@ -80,6 +111,7 @@ class EngineConfig:
             ShapeType.TRAPEZOID,
             ShapeType.STAR,
             ShapeType.ARROW,
+            ShapeType.EQUATION,
         ]
         else False
     )
