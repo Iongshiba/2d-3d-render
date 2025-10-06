@@ -2,8 +2,10 @@ import numpy as np
 
 from OpenGL import GL
 
+from utils import *
 from graphics.buffer import VAO
 from graphics.shader import Shader, ShaderProgram
+from graphics.texture import Texture2D
 
 
 class Part:
@@ -44,6 +46,8 @@ class Shape:
             dtype=np.float32,
         )
 
+        self.texture = None
+
         # fmt: off
         self.transform_loc = GL.glGetUniformLocation(self.shader_program.program, "transform")
         self.camera_loc = GL.glGetUniformLocation(self.shader_program.program, "camera")
@@ -60,6 +64,8 @@ class Shape:
         for shape in self.shapes:
             vao = shape.vao
             vao.activate()
+            if self.texture:
+                self.texture.activate()
             # fmt: off
             if vao.ebo is not None:
                 GL.glDrawElements(
@@ -69,6 +75,8 @@ class Shape:
                 GL.glDrawArrays(
                     shape.draw_mode, 0, shape.vertex_num
                 )
+            if self.texture:
+                self.texture.deactivate()
             vao.deactivate()
         self.shader_program.deactivate()
 
@@ -83,3 +91,8 @@ class Shape:
         GL.glUniformMatrix4fv(self.camera_loc, 1, GL.GL_TRUE, view_matrix)
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, model_matrix)
         self.shader_program.deactivate()
+
+    def _create_texture(self, path):
+        img_data, width, height = load_texture(path)
+        self.texture = Texture2D()
+        self.texture.add_texture(img_data, width, height)

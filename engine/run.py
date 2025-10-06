@@ -7,8 +7,8 @@ if sys.platform.startswith("linux"):
     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
 
 from config import EngineConfig, ShapeConfig, CameraConfig, TrackballConfig
-from core.app import App
-from core.enums import (
+from app import App
+from config.enums import (
     ColorMode,
     RenderMode,
     ShadingModel,
@@ -22,7 +22,7 @@ def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.EQUATION,
+        shape=ShapeType.TRIANGLE,
         shape_config=ShapeConfig(
             # fmt: off
             cylinder_height=1.0,
@@ -57,6 +57,8 @@ def main():
 
     app = App(cfg.width, cfg.height, use_trackball=True)
     renderer = Renderer(cfg)
+
+    renderer.shape.add_texture(r".\textures\wall.jpg")
 
     app.add_renderer(renderer)
     # app.add_shape(renderer.shape)

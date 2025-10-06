@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Tuple
 
-from core.enums import (
+from config.enums import (
     ColorMode,
     RenderMode,
     ShadingModel,
@@ -56,6 +56,8 @@ class ShapeConfig:
     equation_expression: str = "x + y"
     equation_mesh_size: int = 10
     equation_mesh_density: int = 100
+
+    texture_file: str = ""
 
 
 @dataclass(slots=True)

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Callable, Dict
 
 from config import EngineConfig
-from core.enums import ShapeType
+from config.enums import ShapeType
 from shape import *
 
 FactoryCallback = Callable[[EngineConfig], Shape]

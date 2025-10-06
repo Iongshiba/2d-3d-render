@@ -8,6 +8,7 @@ from graphics.buffer import VAO
 from shape.base import Shape, Part
 
 
+# TODO: CUSTOMIZABLE
 class Triangle(Shape):
     def __init__(self, vertex_file, fragment_file):
         super().__init__(vertex_file, fragment_file)
@@ -41,7 +42,28 @@ class Triangle(Shape):
             stride=0,
             offset=None,
         )
+        self.vao = vao
 
         self.shapes.append(
             Part(vao, GL.GL_TRIANGLES, len(vertices)),
+        )
+
+    # fmt: off
+    def add_texture(self, path):
+        self._create_texture(path)
+        # Texture coordinate
+        texcoords = np.array([
+            -1.0, -1.0,
+                1.0, -1.0,
+                0.0,  1.0,
+        ], dtype=np.float32)
+
+        self.vao.add_vbo(
+            location=2,
+            data=texcoords,
+            ncomponents=texcoords.shape[1],
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
         )

@@ -4,7 +4,7 @@ from dataclasses import replace
 
 import numpy as np
 
-from core.enums import CameraMovement
+from config.enums import CameraMovement
 from utils.transform import *
 
 
