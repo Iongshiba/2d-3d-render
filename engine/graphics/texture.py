@@ -22,13 +22,24 @@ class Texture2D:
         height,
         target=GL.GL_TEXTURE_2D,
         mipmap_level=0,
-        texture_format=GL.GL_RGB,
+        internal_format=GL.GL_RGBA,
+        texture_format=GL.GL_RGBA,
         border=0,
-        dtype=np.byte,
+        dtype=GL.GL_UNSIGNED_BYTE,
     ):
         self.activate()
+        # Need to understand this
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         GL.glTexImage2D(
-            target, mipmap_level, texture_format, width, height, border, dtype, data
+            target,
+            mipmap_level,
+            internal_format,
+            width,
+            height,
+            border,
+            texture_format,
+            dtype,
+            data,
         )
         self.deactivate()
 

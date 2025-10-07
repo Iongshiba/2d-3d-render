@@ -31,6 +31,7 @@ class ShapeType(Enum):
     TETRAHEDRON = auto()
     TORUS = auto()             
     EQUATION = auto()
+    MODEL = auto()
 
 
 class ColorMode(Enum):

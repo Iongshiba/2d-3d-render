@@ -16,6 +16,7 @@ from .cone import Cone
 from .truncated_cone import TruncatedCone
 from .torus import Torus
 from .equation import Equation
+from .model import Model
 
 __all__ = [
     "Shape",
@@ -36,4 +37,5 @@ __all__ = [
     "TruncatedCone",
     "Torus",
     "Equation",
+    "Model",
 ]

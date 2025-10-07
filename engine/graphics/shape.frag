@@ -6,9 +6,13 @@ in vec3 vColor;
 in vec2 tCoord;
 
 uniform sampler2D tData;
+uniform bool use_texture;
 
 void main()
 {
-    // color = vec4(vColor, 1.0);
-    color = texture(tData, tCoord);
+    if (use_texture) {
+        color = texture(tData, tCoord);
+    } else {
+        color = vec4(vColor, 1.0);
+    }
 }

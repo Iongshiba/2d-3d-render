@@ -36,13 +36,22 @@ def main():
             ellipse_a=1,
             ellipse_b=0.5,
 
+            torus_horizontal_radius=5,
+            torus_vertical_radius=4.9,
+            torus_sectors=100,
+            torus_stacks=100,
+
             star_wing=10,
             star_outer_radius=1.5,
             star_inner_radius=1,
 
-            equation_expression="((x**2 + y**2 - 1)**3 - x**2 * y**3) * -1",
-            equation_mesh_size=3,
+            equation_expression="cos(x) + sin(y)",
+            equation_mesh_size=100,
             equation_mesh_density=100,
+
+            # model_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\assets\catn0.obj",
+            # texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\cat_text_m.jpg"
+            texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\wall.jpg"
         ),
         camera=CameraConfig(
             move_speed=1,
@@ -57,8 +66,6 @@ def main():
 
     app = App(cfg.width, cfg.height, use_trackball=True)
     renderer = Renderer(cfg)
-
-    renderer.shape.add_texture(r".\textures\wall.jpg")
 
     app.add_renderer(renderer)
     # app.add_shape(renderer.shape)

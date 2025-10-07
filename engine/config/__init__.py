@@ -59,6 +59,8 @@ class ShapeConfig:
 
     texture_file: str = ""
 
+    model_file: str = ""
+
 
 @dataclass(slots=True)
 class CameraConfig:

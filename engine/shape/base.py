@@ -52,11 +52,15 @@ class Shape:
         self.transform_loc = GL.glGetUniformLocation(self.shader_program.program, "transform")
         self.camera_loc = GL.glGetUniformLocation(self.shader_program.program, "camera")
         self.project_loc = GL.glGetUniformLocation(self.shader_program.program, "project")
+        self.use_texture_loc = GL.glGetUniformLocation(self.shader_program.program, "use_texture")
+        self.texture_data_loc = GL.glGetUniformLocation(self.shader_program.program, "tData")
 
         self.shader_program.activate()
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
         GL.glUniformMatrix4fv(self.camera_loc, 1, GL.GL_TRUE, self.identity)
         GL.glUniformMatrix4fv(self.project_loc, 1, GL.GL_TRUE, self.identity)
+        GL.glUniform1i(self.use_texture_loc, True)
+        GL.glUniform1i(self.texture_data_loc, 0)
         self.shader_program.deactivate()
 
     def draw(self):
@@ -95,4 +99,9 @@ class Shape:
     def _create_texture(self, path):
         img_data, width, height = load_texture(path)
         self.texture = Texture2D()
-        self.texture.add_texture(img_data, width, height)
+        self.texture.add_texture(
+            img_data,
+            width,
+            height,
+        )
+        GL.glActiveTexture(GL.GL_TEXTURE0)

@@ -41,6 +41,7 @@ ShapeFactory.register_shape(
     lambda cfg: Triangle(
         _VERTEX_PATH,
         _FRAGMENT_PATH,
+        cfg.shape_config.texture_file,
     ),
 )
 
@@ -196,6 +197,16 @@ ShapeFactory.register_shape(
         cfg.shape_config.equation_expression,
         cfg.shape_config.equation_mesh_size,
         cfg.shape_config.equation_mesh_density,
+    ),
+)
+
+ShapeFactory.register_shape(
+    ShapeType.MODEL,
+    lambda cfg: Model(
+        _VERTEX_PATH,
+        _FRAGMENT_PATH,
+        cfg.shape_config.model_file,
+        cfg.shape_config.texture_file,
     ),
 )
 
