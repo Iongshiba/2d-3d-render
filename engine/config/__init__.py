@@ -103,7 +103,7 @@ class EngineConfig:
     camera: CameraConfig = field(default_factory=CameraConfig)
     trackball: TrackballConfig = field(default_factory=TrackballConfig)
     cull_face: bool = (
-        True
+        False
         if shape
         in [
             ShapeType.TRIANGLE,
@@ -117,7 +117,7 @@ class EngineConfig:
             ShapeType.ARROW,
             ShapeType.EQUATION,
         ]
-        else False
+        else True
     )
 
     @classmethod

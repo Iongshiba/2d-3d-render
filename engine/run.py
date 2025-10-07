@@ -22,12 +22,12 @@ def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.TRIANGLE,
+        shape=ShapeType.CYLINDER,
         shape_config=ShapeConfig(
             # fmt: off
             cylinder_height=1.0,
             cylinder_radius=0.5,
-            cylinder_sectors=5,
+            cylinder_sectors=3,
             
             sphere_radius=2.0,
             sphere_sectors=100,
@@ -49,9 +49,9 @@ def main():
             equation_mesh_size=100,
             equation_mesh_density=100,
 
-            # model_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\assets\catn0.obj",
-            # texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\cat_text_m.jpg"
-            texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\wall.jpg"
+            model_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\assets\catn0.obj",
+            texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\cat_text_m.jpg"
+            # texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\wall.jpg"
         ),
         camera=CameraConfig(
             move_speed=1,
@@ -68,7 +68,6 @@ def main():
     renderer = Renderer(cfg)
 
     app.add_renderer(renderer)
-    # app.add_shape(renderer.shape)
     app.run()
 
 

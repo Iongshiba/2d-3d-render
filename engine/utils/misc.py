@@ -31,22 +31,12 @@ def vertices_to_colors(vertices):
 
 
 def load_model(path):
-    # scene = pyassimp.load(
-    #     path,
-    #     pyassimp.postprocess.aiProcess_Triangulate
-    #     | pyassimp.postprocess.aiProcess_FlipUVs,
-    # )
-
     meshes = []
     with pyassimp.load(path) as scene:
         for mesh in scene.meshes:
             vertices = np.array(mesh.vertices, dtype=np.float32)
 
-            tex_coords = (
-                np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
-                if mesh.texturecoords.size
-                else None
-            )
+            tex_coords = np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
 
             meshes.append(
                 {
