@@ -1,0 +1,90 @@
+import numpy as np
+
+from OpenGL import GL
+
+from utils import *
+from graphics.buffer import VAO
+from graphics.vertex import Vertex
+from shape.base import Shape, Part
+
+
+# fmt: off
+class LightSource(Shape):
+    def __init__(self, vertex_file, fragment_file):
+        super().__init__(vertex_file, fragment_file)
+
+        radius = 1.0
+        sector = 30
+        stack = 30
+
+        sectors = np.linspace(0, 2 * np.pi, sector)
+        stacks = np.linspace(-np.pi / 2.0, np.pi / 2.0, stack)
+
+        sides = []
+        indices = []
+
+        for stack_idx in range(stack):
+            for sector_idx in range(sector):
+
+                sides.extend(
+                    [
+                        Vertex(
+                            radius * np.cos(sectors[sector_idx]) * np.cos(stacks[stack_idx]),
+                            radius * np.sin(sectors[sector_idx]) * np.cos(stacks[stack_idx]),
+                            radius * np.sin(stacks[stack_idx]),
+                            1.0,
+                            0.0,
+                            1.0
+                        ),
+                    ]
+                )
+                if stack_idx < stack - 1:
+                    indices.extend(
+                        [
+                            stack_idx * sector + sector_idx,
+                            (stack_idx + 1) * sector + sector_idx,
+                        ]
+                    )
+
+        side_coords = vertices_to_coords(sides)
+        side_colors = vertices_to_colors(sides)
+        indices = np.array(indices, dtype=np.int32)
+
+        self.color = side_colors
+
+        side_vao = VAO()
+        side_vao.add_vbo(
+            location=0,
+            data=side_coords,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        side_vao.add_vbo(
+            location=1,
+            data=side_colors,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        side_vao.add_ebo(
+            indices,
+        )
+
+        self.shapes.extend(
+            [
+                Part(
+                    side_vao,
+                    GL.GL_TRIANGLE_STRIP,
+                    side_coords.shape[0],
+                    indices.shape[0],
+                ),
+            ]
+        )
+
+    def get_color(self):
+        return self.color

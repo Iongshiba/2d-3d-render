@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from OpenGL import GL
 
-from shape.factory import ShapeFactory
+from shape.base import Shape
+from graphics.scene import Node, LightNode, GeometryNode, TransformNode
 from rendering.camera import Camera, CameraMovement, Trackball
 from rendering.world import Transform
 
@@ -12,9 +13,9 @@ class Renderer:
         self.config = config
         self.camera = Camera(config.camera)
         self.trackball = Trackball(config.trackball)
-        self.shape = ShapeFactory.create_shape(config.shape, config)
-        self.world = Transform()
+
         self.app = None
+        self.root = None
 
         # GL state (simple defaults)
         GL.glViewport(0, 0, self.config.width, self.config.height)
@@ -26,6 +27,24 @@ class Renderer:
         GL.glClearColor(0.07, 0.07, 0.07, 1.0)
 
         self.use_trackball = False
+
+        self.meshes = []
+        self.lights = []
+
+    def set_scene(self, scene):
+        self.root = scene
+
+    def _collect_lighting(self, node):
+        if isinstance(node, LightNode):
+            self.lights.append(node)
+        elif isinstance(node, GeometryNode):
+            self.meshes.append(node)
+        for child in node.children:
+            self._collect_lighting(child)
+
+    def _apply_lighting(self):
+        for mesh in self.meshes:
+            mesh.shape.lighting(self.lights[0].shape.get_color())
 
     def render(self):
         if not self.app:
@@ -48,21 +67,10 @@ class Renderer:
             if not self.use_trackball
             else self.trackball.get_view_matrix()
         )
-        # rotationx_matrix = self.world.get_rotate_matrix("x")
-        # rotationy_matrix = self.world.get_rotate_matrix("y")
-        # translate_matrix = self.world.get_translate_matrix(0, 0, 0)
-        # identity_matrix = self.world.get_identity_matrix()
-        # model_matrix = self.world.combine([rotationx_matrix, rotationy_matrix])
-        model_matrix = self.world.get_identity_matrix()
-        self.shape.transform(
-            projection_matrix,
-            view_matrix,
-            model_matrix,
-        )
-        self.shape.draw()
 
-    def move_world(self, step_scale: float = 1.0) -> None:
-        self.world.process_time(step_scale)
+        self._collect_lighting(self.root)
+        self._apply_lighting()
+        self.root.draw(None, view_matrix, projection_matrix)
 
     def move_camera(self, movement: CameraMovement, step_scale: float = 1.0) -> None:
         self.camera.move(movement, step_scale)

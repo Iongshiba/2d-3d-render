@@ -6,53 +6,19 @@ import sys
 if sys.platform.startswith("linux"):
     os.environ.setdefault("PYOPENGL_PLATFORM", "glx")
 
-from config import EngineConfig, ShapeConfig, CameraConfig, TrackballConfig
 from app import App
-from config.enums import (
-    ColorMode,
-    RenderMode,
-    ShadingModel,
-    ShapeType,
-    TextureMode,
-)
 from rendering.renderer import Renderer
+from rendering.world import Translate, Rotate, Scale
+from config import EngineConfig, CameraConfig, TrackballConfig, ShapeConfig
+from config.enums import ShapeType
+from graphics.scene import Node, TransformNode, GeometryNode, LightNode
+from shape import ShapeFactory
 
 
 def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.TORUS,
-        shape_config=ShapeConfig(
-            # fmt: off
-            cylinder_height=1.0,
-            cylinder_radius=0.5,
-            cylinder_sectors=3,
-            
-            sphere_radius=2.0,
-            sphere_sectors=50,
-            sphere_stacks=51,
-            
-            ellipse_a=1,
-            ellipse_b=0.5,
-
-            torus_horizontal_radius=5,
-            torus_vertical_radius=4.9,
-            torus_sectors=100,
-            torus_stacks=100,
-
-            star_wing=10,
-            star_outer_radius=1.5,
-            star_inner_radius=1,
-
-            equation_expression="cos(x) + sin(y)",
-            equation_mesh_size=100,
-            equation_mesh_density=100,
-
-            model_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\assets\catn0.obj",
-            texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\cat_text_m.jpg"
-            # texture_file=r"C:\Users\trand\longg\document\college\hk251\computer_graphic\2d-3d-render\engine\textures\wall.jpg"
-        ),
         camera=CameraConfig(
             move_speed=1,
             position=(0.0, 0.0, 4.0),
@@ -63,10 +29,54 @@ def main():
             pan_sensitivity=0.0005,
         ),
     )
+    shape_cfg = ShapeConfig()
 
     app = App(cfg.width, cfg.height, use_trackball=True)
     renderer = Renderer(cfg)
 
+    scene = Node("root")
+
+    # Sphere 1
+    scene.add(
+        TransformNode(
+            "translate_1",
+            Translate(3, 0, 0),
+            [
+                GeometryNode(
+                    "sphere_1", ShapeFactory.create_shape(ShapeType.SPHERE, shape_cfg)
+                )
+            ],
+        )
+    )
+
+    # Sphere 2
+    scene.add(
+        TransformNode(
+            "translate_2",
+            Translate(-3, 3, 0),
+            [
+                GeometryNode(
+                    "sphere_2", ShapeFactory.create_shape(ShapeType.SPHERE, shape_cfg)
+                )
+            ],
+        )
+    )
+
+    # Light
+    scene.add(
+        TransformNode(
+            "translate_3",
+            Translate(0, 3, 5),
+            [
+                # fmt:off
+                LightNode(
+                    "light", ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
+                )
+            ],
+        )
+    )
+
+    renderer.set_scene(scene)
     app.add_renderer(renderer)
     app.run()
 

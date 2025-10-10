@@ -32,6 +32,7 @@ class ShapeType(Enum):
     TORUS = auto()             
     EQUATION = auto()
     MODEL = auto()
+    LIGHT_SOURCE = auto()
 
 
 class ColorMode(Enum):

@@ -114,8 +114,6 @@ class App:
             # Clear once per frame
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-            # Updating Animated Transformed
-            self._update_transform(delta_time)
             # Updating WASD movement
             self._update_camera(delta_time)
             self.renderer.render()
@@ -124,12 +122,6 @@ class App:
             glfw.swap_buffers(self.window)
 
         glfw.terminate()
-
-    def _update_transform(self, delta_time: float) -> None:
-        if delta_time <= 0.0:
-            return
-
-        self.renderer.move_world(delta_time)
 
     def _update_camera(self, delta_time: float) -> None:
         if delta_time <= 0.0:

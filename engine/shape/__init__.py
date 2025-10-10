@@ -17,6 +17,8 @@ from .truncated_cone import TruncatedCone
 from .torus import Torus
 from .equation import Equation
 from .model import Model
+from .light_source import LightSource
+from .factory import ShapeFactory
 
 __all__ = [
     "Shape",
@@ -38,4 +40,6 @@ __all__ = [
     "Torus",
     "Equation",
     "Model",
+    "LightSource",
+    "ShapeFactory",
 ]
