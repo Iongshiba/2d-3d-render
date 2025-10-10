@@ -28,8 +28,6 @@ class Texture2D:
         dtype=GL.GL_UNSIGNED_BYTE,
     ):
         self.activate()
-        # Need to understand this
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         GL.glTexImage2D(
             target,
             mipmap_level,

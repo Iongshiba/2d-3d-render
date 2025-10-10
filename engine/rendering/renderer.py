@@ -21,7 +21,7 @@ class Renderer:
         GL.glEnable(GL.GL_DEPTH_TEST)
         if config.cull_face:
             GL.glEnable(GL.GL_CULL_FACE)
-        GL.glCullFace(GL.GL_BACK)
+        GL.glCullFace(GL.GL_FRONT)
         GL.glFrontFace(GL.GL_CCW)
         GL.glClearColor(0.07, 0.07, 0.07, 1.0)
 

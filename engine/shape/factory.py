@@ -171,7 +171,6 @@ ShapeFactory.register_shape(
     lambda cfg: Sphere(
         _VERTEX_PATH,
         _FRAGMENT_PATH,
-        cfg.shape_config.texture_file,
         cfg.shape_config.sphere_radius,
         cfg.shape_config.sphere_sectors,
         cfg.shape_config.sphere_stacks,
