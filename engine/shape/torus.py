@@ -30,27 +30,36 @@ class Torus(Shape):
         stacks = np.linspace(0, 2 * np.pi, stack)
 
         sides = []
+        indices = []
 
         # fmt: off
-        for stack_idx in range(stack - 1):
-            for sector in sectors:
+        for stack_idx in range(stack):
+            for sector_idx in range(sector):
                 sides.extend(
                     [
                         Vertex(
-                            (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx])) * np.cos(sector),
-                            (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx])) * np.sin(sector),
+                            (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx])) * np.cos(sectors[sector_idx]),
+                            (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx])) * np.sin(sectors[sector_idx]),
                             vertical_radius * np.sin(stacks[stack_idx]),
                         ),
-                        Vertex(
-                            (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx + 1])) * np.cos(sector),
-                            (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx + 1])) * np.sin(sector),
-                            vertical_radius * np.sin(stacks[stack_idx + 1]),
-                        )
+                        # Vertex(
+                        #     (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx + 1])) * np.cos(sector),
+                        #     (horizontal_radius + vertical_radius * np.cos(stacks[stack_idx + 1])) * np.sin(sector),
+                        #     vertical_radius * np.sin(stacks[stack_idx + 1]),
+                        # )
                     ]
                 )
+                if stack_idx < stack - 1:
+                    indices.extend(
+                        [
+                            stack_idx * sector + sector_idx,
+                            (stack_idx + 1) * sector + sector_idx,
+                        ]
+                    )
 
         side_coords = vertices_to_coords(sides)
         side_colors = vertices_to_colors(sides)
+        indices = np.array(indices, dtype=np.int32)
 
         side_vao = VAO()
         side_vao.add_vbo(
@@ -71,9 +80,12 @@ class Torus(Shape):
             stride=0,
             offset=None,
         )
+        side_vao.add_ebo(
+            indices,
+        )
 
         self.shapes.extend(
             [
-                Part(side_vao, GL.GL_TRIANGLE_STRIP, side_coords.shape[0]),
+                Part(side_vao, GL.GL_TRIANGLE_STRIP, side_coords.shape[0], indices.shape[0]),
             ]
         )

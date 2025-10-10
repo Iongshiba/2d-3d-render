@@ -22,7 +22,7 @@ def main():
     cfg = EngineConfig(
         width=1000,
         height=1000,
-        shape=ShapeType.CYLINDER,
+        shape=ShapeType.TORUS,
         shape_config=ShapeConfig(
             # fmt: off
             cylinder_height=1.0,
@@ -30,8 +30,8 @@ def main():
             cylinder_sectors=3,
             
             sphere_radius=2.0,
-            sphere_sectors=100,
-            sphere_stacks=101,
+            sphere_sectors=50,
+            sphere_stacks=51,
             
             ellipse_a=1,
             ellipse_b=0.5,
