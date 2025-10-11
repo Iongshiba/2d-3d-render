@@ -54,7 +54,8 @@ class Shape:
         self.project_loc = GL.glGetUniformLocation(self.shader_program.program, "project")
         self.use_texture_loc = GL.glGetUniformLocation(self.shader_program.program, "use_texture")
         self.texture_data_loc = GL.glGetUniformLocation(self.shader_program.program, "tData")
-        self.light_source_loc = GL.glGetUniformLocation(self.shader_program.program, "light")
+        self.light_color_loc = GL.glGetUniformLocation(self.shader_program.program, "light")
+        self.light_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "lCoord")
 
         self.shader_program.activate()
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
@@ -99,10 +100,12 @@ class Shape:
 
     def lighting(
         self,
-        light_matrix: np.ndarray,
+        color: np.ndarray,
+        position: np.ndarray,
     ):
         self.shader_program.activate()
-        GL.glUniform3fv(self.light_source_loc, 1, light_matrix)
+        GL.glUniform3fv(self.light_color_loc, 1, color)
+        GL.glUniform3fv(self.light_coord_loc, 1, position)
         self.shader_program.deactivate()
 
     def _create_texture(self, path):

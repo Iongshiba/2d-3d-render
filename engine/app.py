@@ -108,7 +108,7 @@ class App:
     def run(self):
         while not glfw.window_should_close(self.window):
             current_time = glfw.get_time()
-            delta_time = current_time - self._last_time
+            delta_time = min(current_time - self._last_time, 0.05)
             self._last_time = current_time
 
             # Clear once per frame
@@ -116,7 +116,7 @@ class App:
 
             # Updating WASD movement
             self._update_camera(delta_time)
-            self.renderer.render()
+            self.renderer.render(delta_time)
 
             glfw.poll_events()
             glfw.swap_buffers(self.window)

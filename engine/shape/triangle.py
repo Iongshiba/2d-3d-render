@@ -52,7 +52,7 @@ class Triangle(Shape):
             offset=None,
         )        
         vao.add_vbo(
-            location=2,
+            location=3,
             data=texcoords,
             ncomponents=texcoords.shape[1],
             dtype=GL.GL_FLOAT,

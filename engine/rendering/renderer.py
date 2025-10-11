@@ -28,25 +28,36 @@ class Renderer:
 
         self.use_trackball = False
 
-        self.meshes = []
-        self.lights = []
+        self.shape_nodes = []
+        self.light_nodes = []
+        self.transform_nodes = []
 
     def set_scene(self, scene):
         self.root = scene
 
-    def _collect_lighting(self, node):
+    def _collect_node(self, node):
         if isinstance(node, LightNode):
-            self.lights.append(node)
+            self.light_nodes.append(node)
         elif isinstance(node, GeometryNode):
-            self.meshes.append(node)
+            self.shape_nodes.append(node)
+        elif isinstance(node, TransformNode):
+            self.transform_nodes.append(node)
         for child in node.children:
-            self._collect_lighting(child)
+            self._collect_node(child)
 
     def _apply_lighting(self):
-        for mesh in self.meshes:
-            mesh.shape.lighting(self.lights[0].shape.get_color())
+        for node in self.shape_nodes:
+            # TODO aggregate light instead of indexing 0
+            node.shape.lighting(
+                self.light_nodes[0].shape.get_color(),
+                self.light_nodes[0].shape.get_position(),
+            )
 
-    def render(self):
+    def _apply_animation(self, dt):
+        for node in self.transform_nodes:
+            node.transform.update_matrix(dt)
+
+    def render(self, delta_time):
         if not self.app:
             raise ValueError("Must attach to an Application")
 
@@ -68,7 +79,11 @@ class Renderer:
             else self.trackball.get_view_matrix()
         )
 
-        self._collect_lighting(self.root)
+        self.shape_nodes.clear()
+        self.light_nodes.clear()
+        self.transform_nodes.clear()
+        self._collect_node(self.root)
+        self._apply_animation(delta_time)
         self._apply_lighting()
         self.root.draw(None, view_matrix, projection_matrix)
 

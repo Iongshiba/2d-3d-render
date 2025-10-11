@@ -13,6 +13,8 @@ class LightSource(Shape):
     def __init__(self, vertex_file, fragment_file):
         super().__init__(vertex_file, fragment_file)
 
+        self.position = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+
         radius = 1.0
         sector = 30
         stack = 30
@@ -85,6 +87,17 @@ class LightSource(Shape):
                 ),
             ]
         )
+    
+    def transform(self, project_matrix, view_matrix, model_matrix):
+        homogeneous = np.append(self.position, 1.0)
+        transformed = np.dot(model_matrix, homogeneous)
+        self.position = transformed[:3]
+        
+        super().transform(project_matrix, view_matrix, model_matrix)
+
 
     def get_color(self):
         return self.color
+    
+    def get_position(self):
+        return self.position

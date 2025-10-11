@@ -25,6 +25,17 @@ class Cube(Shape):
             Vertex(-0.5, -0.5, 0.5),
             Vertex(0.5, -0.5, 0.5),
         ]
+
+        norms = np.array([
+            [0.0, 0.0, -1.0],
+            [0.0, 0.0, -1.0],
+            [0.0, 0.0, -1.0],
+            [0.0, 0.0, -1.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],            
+        ], dtype=np.float32)
         
         coords = vertices_to_coords(vertices)
         colors = vertices_to_colors(vertices)
@@ -64,6 +75,15 @@ class Cube(Shape):
             location=1, 
             data=colors,
             ncomponents=colors.shape[1],
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_vbo(
+            location=2, 
+            data=norms,
+            ncomponents=norms.shape[1],
             dtype=GL.GL_FLOAT,
             normalized=False,
             stride=0,

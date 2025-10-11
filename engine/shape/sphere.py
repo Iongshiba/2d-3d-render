@@ -11,9 +11,6 @@ from shape.base import Shape, Part
 # fmt: off
 class Sphere(Shape):
     def __init__(self, vertex_file, fragment_file, radius, sector, stack):
-        # if stack % 2 != 1:
-        #     raise ValueError("stack value must be odd")
-
         super().__init__(vertex_file, fragment_file)
 
         # fix the last missing piece when draw with linspace
@@ -28,6 +25,7 @@ class Sphere(Shape):
 
         sides = []
         indices = []
+        norms = []
         # texcoords = []
 
         # stack_count = len(stacks) - 1
@@ -70,6 +68,7 @@ class Sphere(Shape):
         side_coords = vertices_to_coords(sides)
         side_colors = vertices_to_colors(sides)
         indices = np.array(indices, dtype=np.int32)
+        norms = np.copy(side_coords)
         # side_texcoords = np.array(texcoords, dtype=np.float32)
 
         side_vao = VAO()
@@ -85,6 +84,15 @@ class Sphere(Shape):
         side_vao.add_vbo(
             location=1,
             data=side_colors,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        side_vao.add_vbo(
+            location=2,
+            data=norms,
             ncomponents=3,
             dtype=GL.GL_FLOAT,
             normalized=False,
