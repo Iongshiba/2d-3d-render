@@ -120,16 +120,30 @@ def main():
     # Light
     scene.add(
         TransformNode(
-            "translate_3",
-            Translate(animate=infinite_orbit(1, 7)),
+            "translate",
+            Translate(10, 10, 10),
             [
                 # fmt:off
                 LightNode(
-                    "light_2", ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
+                    "light_1", ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
                 )
             ],
         )
     )
+
+    # Light
+    # scene.add(
+    #     TransformNode(
+    #         "translate",
+    #         Translate(-10, -10, -10),
+    #         [
+    #             # fmt:off
+    #             LightNode(
+    #                 "light_2", ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
+    #             )
+    #         ],
+    #     )
+    # )
 
     renderer.set_scene(scene)
     app.add_renderer(renderer)

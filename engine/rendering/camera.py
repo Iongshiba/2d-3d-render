@@ -126,6 +126,7 @@ class Trackball:
 
     def __init__(self, config=None):
         """Build a new trackball with specified view, angles in degrees"""
+        self.position = config.position
         self.rotation = quaternion_from_euler(
             config.yaw, config.roll, config.pitch, config.radians
         )

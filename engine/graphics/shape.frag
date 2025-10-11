@@ -2,30 +2,40 @@
 
 out vec4 color;
 
-in vec3 vColor;
-in vec3 vNorm;
-in vec3 vCoord;
-in vec2 tCoord;
+in vec3 vertexColor;
+in vec3 vertexNorm;
+in vec3 vertexCoord;
+in vec2 textureCoord;
 
-uniform sampler2D tData;
+uniform sampler2D textureData;
 uniform bool use_texture;
-uniform vec3 light;
-uniform vec3 lCoord;
+uniform vec3 lightColor;
+uniform vec3 lightCoord;
+uniform vec3 cameraCoord;
 
 void main()
 {
-    vec3 lightDirection = normalize(lCoord - vCoord); // Why lCoord - vCoord but not reverse?
-    vec3 vectorNorm = normalize(vNorm);
-
+    // Step 1: Ambient Light
     float ambientStrength = 0.1;
-    float diffStrength = max(dot(vectorNorm, lightDirection), 0.0);
+    vec3 ambient = lightColor * ambientStrength;
 
-    vec3 ambient = light * ambientStrength;
-    vec3 diffuse = light * diffStrength;
+    // Step 2: Diffuse Light
+    vec3 lightDirection = normalize(lightCoord - vertexCoord);
+    vec3 vectorNorm = normalize(vertexNorm);
+    float diff = max(dot(vectorNorm, lightDirection), 0.0);
+    vec3 diffuse = lightColor * diff;
+
+    // Step 3: Specular Light
+    float specularStrength = 0.5;
+    vec3 cameraDirection = normalize(cameraCoord - vertexCoord);
+    vec3 reflectDirection = reflect(-lightDirection, vectorNorm);
+    float spec = pow(max(dot(reflectDirection, cameraDirection), 0.0), 32);
+    vec3 specular = lightColor * specularStrength * spec;
+
 
     if (use_texture) {
-        color = vec4(ambient + diffuse, 1.0) * texture(tData, tCoord);
+        color = vec4(specular + ambient + diffuse, 1.0) * texture(textureData, textureCoord);
     } else {
-        color = vec4(ambient + diffuse, 1.0) * vec4(vColor, 1.0);
+        color = vec4(specular + ambient + diffuse, 1.0) * vec4(vertexColor, 1.0);
     }
 }

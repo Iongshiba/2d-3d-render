@@ -53,9 +53,10 @@ class Shape:
         self.camera_loc = GL.glGetUniformLocation(self.shader_program.program, "camera")
         self.project_loc = GL.glGetUniformLocation(self.shader_program.program, "project")
         self.use_texture_loc = GL.glGetUniformLocation(self.shader_program.program, "use_texture")
-        self.texture_data_loc = GL.glGetUniformLocation(self.shader_program.program, "tData")
-        self.light_color_loc = GL.glGetUniformLocation(self.shader_program.program, "light")
-        self.light_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "lCoord")
+        self.texture_data_loc = GL.glGetUniformLocation(self.shader_program.program, "textureData")
+        self.light_color_loc = GL.glGetUniformLocation(self.shader_program.program, "lightColor")
+        self.light_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "lightCoord")
+        self.camera_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "cameraCoord")
 
         self.shader_program.activate()
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
@@ -100,12 +101,14 @@ class Shape:
 
     def lighting(
         self,
-        color: np.ndarray,
-        position: np.ndarray,
+        light_color: np.ndarray,
+        light_position: np.ndarray,
+        camera_position: np.ndarray,
     ):
         self.shader_program.activate()
-        GL.glUniform3fv(self.light_color_loc, 1, color)
-        GL.glUniform3fv(self.light_coord_loc, 1, position)
+        GL.glUniform3fv(self.light_color_loc, 1, light_color)
+        GL.glUniform3fv(self.light_coord_loc, 1, light_position)
+        GL.glUniform3fv(self.camera_coord_loc, 1, camera_position)
         self.shader_program.deactivate()
 
     def _create_texture(self, path):

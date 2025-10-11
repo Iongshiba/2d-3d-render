@@ -51,6 +51,7 @@ class Renderer:
             node.shape.lighting(
                 self.light_nodes[0].shape.get_color(),
                 self.light_nodes[0].shape.get_position(),
+                self.trackball.position,
             )
 
     def _apply_animation(self, dt):
