@@ -16,7 +16,7 @@ uniform vec3 cameraCoord;
 void main()
 {
     // Step 1: Ambient Light
-    float ambientStrength = 0.1;
+    float ambientStrength = 0.3;
     vec3 ambient = lightColor * ambientStrength;
 
     // Step 2: Diffuse Light

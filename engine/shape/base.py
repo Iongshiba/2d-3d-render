@@ -1,8 +1,10 @@
 import numpy as np
 
+from pathlib import Path
 from OpenGL import GL
 
 from utils import *
+from config import _SHAPE_FRAGMENT_PATH, _SHAPE_VERTEX_PATH
 from graphics.buffer import VAO
 from graphics.shader import Shader, ShaderProgram
 from graphics.texture import Texture2D
@@ -26,6 +28,11 @@ class Part:
 class Shape:
     def __init__(self, vertex_file: str, fragment_file: str):
         # Shaders
+        if not vertex_file:
+            vertex_file = _SHAPE_VERTEX_PATH
+        if not fragment_file:
+            fragment_file = _SHAPE_FRAGMENT_PATH
+
         vertex_shader = Shader(vertex_file)
         fragment_shader = Shader(fragment_file)
         self.shader_program = ShaderProgram()

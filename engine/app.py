@@ -34,6 +34,7 @@ class App:
         glfw.set_mouse_button_callback(self.window, self._on_mouse_press)
 
         self.renderer = None
+        self._key_handlers = []
         self.pressed_keys = {
             glfw.KEY_W: False,
             glfw.KEY_S: False,
@@ -89,10 +90,15 @@ class App:
         if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(window, True)
+            if key == glfw.KEY_F:
+                self.renderer.toggle_wireframe()
             if key in self.pressed_keys:
                 self.pressed_keys[key] = True
         elif action == glfw.RELEASE and key in self.pressed_keys:
             self.pressed_keys[key] = False
+
+        for handler in self._key_handlers:
+            handler(key, action, mods)
 
     def _on_scroll(self, window, delta_x, delta_y):
         self.renderer.zoom_trackball(delta_y, self.winsize[1])
@@ -101,6 +107,13 @@ class App:
         renderer.use_trackball = self.use_arcball
         renderer.app = self
         self.renderer = renderer
+
+    def register_key_handler(self, handler):
+        self._key_handlers.append(handler)
+
+    def set_window_title(self, title: str) -> None:
+        if self.window:
+            glfw.set_window_title(self.window, title)
 
     def get_aspect_ratio(self):
         return self.width / self.height

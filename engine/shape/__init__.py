@@ -8,6 +8,7 @@ from .rectangle import Rectangle
 from .pentagon import Pentagon
 from .hexagon import Hexagon
 from .circle import Circle
+from .ring import Ring
 from .ellipse import Ellipse
 from .trapezoid import Trapezoid
 from .star import Star

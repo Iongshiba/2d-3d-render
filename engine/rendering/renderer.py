@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from OpenGL import GL
 
-from shape.base import Shape
 from graphics.scene import Node, LightNode, GeometryNode, TransformNode
 from rendering.camera import Camera, CameraMovement, Trackball
 from rendering.world import Transform
@@ -27,6 +26,7 @@ class Renderer:
         GL.glClearColor(0.07, 0.07, 0.07, 1.0)
 
         self.use_trackball = False
+        self.use_wireframe = False
 
         self.shape_nodes = []
         self.light_nodes = []
@@ -104,3 +104,10 @@ class Renderer:
 
     def zoom_trackball(self, delta, winsize):
         self.trackball.zoom(delta, winsize)
+
+    def toggle_wireframe(self):
+        self.use_wireframe = False if self.use_wireframe else True
+        if self.use_wireframe:
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+        else:
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)

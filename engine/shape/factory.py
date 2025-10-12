@@ -2,24 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Callable, Dict
 
-from config import ShapeConfig
-from config.enums import ShapeType
+from config import ShapeType, ShapeConfig
+from config import _SHAPE_VERTEX_PATH, _SHAPE_FRAGMENT_PATH, _LIGHT_FRAGMENT_PATH
 from shape import *
 
 FactoryCallback = Callable[[ShapeConfig], Shape]
-
-
-def _shader_path(*parts: str) -> str:
-    return str(_SHADER_ROOT.joinpath(*parts).resolve())
-
-
-_SHADER_ROOT = Path(__file__).resolve().parent.parent
-_SHAPE_VERTEX_PATH = _shader_path("graphics", "shape.vert")
-_SHAPE_FRAGMENT_PATH = _shader_path("graphics", "shape.frag")
-_LIGHT_FRAGMENT_PATH = _shader_path("graphics", "light.frag")
 
 
 class ShapeFactory:
@@ -170,11 +159,12 @@ ShapeFactory.register_shape(
 ShapeFactory.register_shape(
     ShapeType.SPHERE,
     lambda cfg: Sphere(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.sphere_radius,
         cfg.sphere_sectors,
         cfg.sphere_stacks,
+        cfg.sphere_color,
+        _SHAPE_VERTEX_PATH,
+        _SHAPE_FRAGMENT_PATH,
     ),
 )
 

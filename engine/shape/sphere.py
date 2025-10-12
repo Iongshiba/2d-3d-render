@@ -10,7 +10,7 @@ from shape.base import Shape, Part
 
 # fmt: off
 class Sphere(Shape):
-    def __init__(self, vertex_file, fragment_file, radius, sector, stack):
+    def __init__(self, radius, sector, stack, color=(None, None, None), vertex_file=None, fragment_file=None):
         super().__init__(vertex_file, fragment_file)
 
         # fix the last missing piece when draw with linspace
@@ -48,9 +48,9 @@ class Sphere(Shape):
                             radius * np.cos(sectors[sector_idx]) * np.cos(stacks[stack_idx]),
                             radius * np.sin(sectors[sector_idx]) * np.cos(stacks[stack_idx]),
                             radius * np.sin(stacks[stack_idx]),
-                            0.5,
-                            0.5,
-                            0.9,
+                            color[0],
+                            color[1],
+                            color[2],
                         ),
                     ]
                 )

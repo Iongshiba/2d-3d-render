@@ -1,4 +1,4 @@
-import pyassimp
+# import pyassimp
 import sympy as sp
 import numpy as np
 from OpenGL import GL
@@ -31,19 +31,20 @@ def vertices_to_colors(vertices):
 
 
 def load_model(path):
-    meshes = []
-    with pyassimp.load(path) as scene:
-        for mesh in scene.meshes:
-            vertices = np.array(mesh.vertices, dtype=np.float32)
+    pass
+    # meshes = []
+    # with pyassimp.load(path) as scene:
+    #     for mesh in scene.meshes:
+    #         vertices = np.array(mesh.vertices, dtype=np.float32)
 
-            tex_coords = np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
+    #         tex_coords = np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
 
-            meshes.append(
-                {
-                    "vertices": vertices,
-                    "tex_coords": tex_coords,
-                    "indices": np.array(mesh.faces, dtype=np.uint32).flatten(),
-                }
-            )
+    #         meshes.append(
+    #             {
+    #                 "vertices": vertices,
+    #                 "tex_coords": tex_coords,
+    #                 "indices": np.array(mesh.faces, dtype=np.uint32).flatten(),
+    #             }
+    #         )
 
-    return meshes
+    # return meshes

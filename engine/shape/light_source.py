@@ -10,10 +10,11 @@ from shape.base import Shape, Part
 
 # fmt: off
 class LightSource(Shape):
-    def __init__(self, vertex_file, fragment_file):
+    def __init__(self, vertex_file=None, fragment_file=None):
         super().__init__(vertex_file, fragment_file)
 
         self.position = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+        self.color = np.array([1.0, 1.0, 1.0], dtype=np.float32)
 
         radius = 1.0
         sector = 30
@@ -51,8 +52,6 @@ class LightSource(Shape):
         side_coords = vertices_to_coords(sides)
         side_colors = vertices_to_colors(sides)
         indices = np.array(indices, dtype=np.int32)
-
-        self.color = side_colors
 
         side_vao = VAO()
         side_vao.add_vbo(

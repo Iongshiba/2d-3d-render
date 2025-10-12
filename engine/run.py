@@ -11,9 +11,25 @@ from app import App
 from rendering.renderer import Renderer
 from rendering.world import Translate, Rotate, Scale
 from config import EngineConfig, CameraConfig, TrackballConfig, ShapeConfig
-from config.enums import ShapeType
+from config import ShapeType
 from graphics.scene import Node, TransformNode, GeometryNode, LightNode
-from shape import ShapeFactory
+from shape import ShapeFactory, Sphere, Ring, LightSource
+
+
+cfg = EngineConfig(
+    width=1000,
+    height=1000,
+    camera=CameraConfig(
+        move_speed=1,
+        position=(0.0, 0.0, 4.0),
+        fov=75,
+    ),
+    trackball=TrackballConfig(
+        distance=10.0,
+        pan_sensitivity=0.0005,
+    ),
+)
+shape_cfg = ShapeConfig()
 
 
 # Animation
@@ -31,126 +47,95 @@ def infinite_orbit(speed: float = 1.0, radius: float = 1.0):
         nonlocal theta
         theta = (theta + dt * speed) % (2 * np.pi)
         t.x = np.cos(theta) * radius
-        t.z = np.sin(theta) * radius
+        t.y = np.sin(theta) * radius
 
     return update_fn
 
 
-def main():
-    cfg = EngineConfig(
-        width=1000,
-        height=1000,
-        camera=CameraConfig(
-            move_speed=1,
-            position=(0.0, 0.0, 4.0),
-            fov=75,
-        ),
-        trackball=TrackballConfig(
-            distance=10.0,
-            pan_sensitivity=0.0005,
-        ),
-    )
-    shape_cfg = ShapeConfig()
+def generate_nucleus(x, y, z, radius, sector, stack):
+    stacks = np.linspace(-np.pi / 2, np.pi / 2, stack)
+    sectors = np.linspace(0, 2 * np.pi, sector)
+    proton_color = (0.8, 0.2, 0.2)
+    neutron_color = (0.0, 0.8, 0.0)
+    color = neutron_color
 
+    atom_sphere = []
+    for stack in stacks:
+        for sector in sectors:
+            color = proton_color if color == neutron_color else neutron_color
+            atom_sphere.append(
+                TransformNode(
+                    "atom_sphere",
+                    Translate(
+                        radius * np.cos(stack) * np.cos(sector),
+                        radius * np.cos(stack) * np.sin(sector),
+                        radius * np.sin(stack),
+                    ),
+                    [GeometryNode("atom", Sphere(1, 20, 20, color))],
+                )
+            )
+
+    return TransformNode("nucleus", Translate(x, y, z), atom_sphere)
+
+
+def generate_electron(x, y, z, radius, speed):
+    color = (0.2, 0.2, 0.8)
+    return TransformNode(
+        "electron",
+        Translate(
+            x,
+            y,
+            z,
+            infinite_orbit(speed, radius),
+        ),
+        [GeometryNode("atom", Sphere(0.8, 20, 20, color))],
+    )
+
+
+def generate_orbit_ring(x, y, z, radius, sector):
+    color = (0.8, 0.8, 0.8)
+    return TransformNode(
+        "ring",
+        Translate(x, y, z),
+        [GeometryNode("ring", Ring(radius, sector, color))],
+    )
+
+
+def main():
     app = App(cfg.width, cfg.height, use_trackball=True)
     renderer = Renderer(cfg)
 
     scene = Node("root")
 
-    # Sphere 1
-    scene.add(
-        TransformNode(
-            "translate_1",
-            Translate(3, 0, 0),
-            [
-                TransformNode(
-                    "rotate_1",
-                    Rotate(animate=infinite_rotate(100)),
-                    [
-                        GeometryNode(
-                            "sphere_1",
-                            ShapeFactory.create_shape(ShapeType.SPHERE, shape_cfg),
-                        ),
-                    ],
-                ),
-            ],
-        )
-    )
+    scene.add(generate_nucleus(0, 0, 0, 1, 6, 3))
 
-    # Sphere 2
-    scene.add(
-        TransformNode(
-            "translate_2",
-            Translate(-3, 3, 0),
-            [
-                GeometryNode(
-                    "sphere_2", ShapeFactory.create_shape(ShapeType.SPHERE, shape_cfg)
-                )
-            ],
-        )
-    )
+    scene.add(generate_orbit_ring(0, 0, 0, 5, 50))
+    scene.add(generate_electron(0, 0, 0, 5, 1))
 
-    # Sphere 3
-    scene.add(
-        TransformNode(
-            "translate_3",
-            Translate(0, 0, 0),
-            [
-                TransformNode(
-                    "scale",
-                    Scale(0.1, 0.1, 0.1),
-                    [
-                        GeometryNode(
-                            "sphere_2",
-                            ShapeFactory.create_shape(ShapeType.SPHERE, shape_cfg),
-                        )
-                    ],
-                )
-            ],
-        )
-    )
+    scene.add(generate_orbit_ring(0, 0, 0, 10, 50))
+    scene.add(generate_electron(0, 0, 0, 10, 1.2))
 
-    # # Light
-    # scene.add(
-    #     TransformNode(
-    #         "translate_3",
-    #         Translate(0, 3, 5),
-    #         [
-    #             # fmt:off
-    #             LightNode(
-    #                 "light_1", ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
-    #             )
-    #         ],
-    #     )
-    # )
+    scene.add(generate_orbit_ring(0, 0, 0, 15, 50))
+    scene.add(generate_electron(0, 0, 0, 15, 1.4))
 
-    # Light
     scene.add(
         TransformNode(
             "translate",
-            Translate(10, 10, 10),
+            Translate(15, 15, 15),
             [
-                # fmt:off
+                # TransformNode(
+                #     "scale",
+                # Scale(2, 2, 2),
+                # [
                 LightNode(
-                    "light_1", ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
+                    "light",
+                    ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg),
                 )
+                # ],
+                # )
             ],
         )
     )
-
-    # Light
-    # scene.add(
-    #     TransformNode(
-    #         "translate",
-    #         Translate(-10, -10, -10),
-    #         [
-    #             # fmt:off
-    #             LightNode(
-    #                 "light_2", ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
-    #             )
-    #         ],
-    #     )
-    # )
 
     renderer.set_scene(scene)
     app.add_renderer(renderer)

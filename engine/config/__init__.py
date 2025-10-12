@@ -3,17 +3,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Tuple
-
-from config.enums import (
-    ColorMode,
-    RenderMode,
-    ShadingModel,
+from .enums import (
+    CameraMovement,
     ShapeType,
+    ColorMode,
+    ShadingModel,
     TextureMode,
+    RenderMode,
 )
 
-RGBColor = Tuple[float, float, float]
+
+def _shader_path(*parts: str) -> str:
+    return str(_SHADER_ROOT.joinpath(*parts).resolve())
+
+
+_SHADER_ROOT = Path(__file__).resolve().parent.parent
+_SHAPE_VERTEX_PATH = _shader_path("graphics", "shape.vert")
+_SHAPE_FRAGMENT_PATH = _shader_path("graphics", "shape.frag")
+_LIGHT_FRAGMENT_PATH = _shader_path("graphics", "light.frag")
 
 
 @dataclass(slots=True)
@@ -28,6 +37,7 @@ class ShapeConfig:
     sphere_sectors: int = 40
     # TODO handle any sphere_stacks
     sphere_stacks: int = 41
+    sphere_color: tuple[float, float, float] = (None, None, None)
 
     circle_sector: int = 100
 
@@ -120,4 +130,19 @@ class EngineConfig:
     # )
 
 
-__all__ = ["EngineConfig", "ShapeConfig", "CameraConfig", "RGBColor"]
+__all__ = [
+    "EngineConfig",
+    "ShapeConfig",
+    "CameraConfig",
+    "TrackballConfig",
+    "_SHADER_ROOT",
+    "_SHAPE_VERTEX_PATH",
+    "_SHAPE_FRAGMENT_PATH",
+    "_LIGHT_FRAGMENT_PATH",
+    "CameraMovement",
+    "ShapeType",
+    "ColorMode",
+    "ShadingModel",
+    "TextureMode",
+    "RenderMode",
+]
