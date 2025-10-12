@@ -1,12 +1,32 @@
-# React + Vite
+# Scene Composer UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The web client now provides a scene-composition workspace for the OpenGL engine.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Scene tabs** – Switch between multiple scenes, add new tabs, or close existing ones (similar to a browser).
+- **Object library** – Add any primitive from `engine/shape` or drop in predefined templates based on `engine/scenes`, such as the atom or solar system.
+- **Scene graph tree** – Inspect the hierarchy, hide/show nodes, or delete them individually. Bulk actions let you hide/show/delete everything in the active scene.
+- **Workspace panel** – Placeholder canvas area ready for future hookup to the Python renderer.
 
-## Expanding the ESLint configuration
+## Running locally
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+npm install
+npm run dev
+```
+
+> **Note:** The UI relies on Vite. If `npm install` fails due to network restrictions, retry or install from a network that can reach `https://registry.npmjs.org`.
+
+To produce a production build:
+
+```
+npm run build
+```
+
+The React application lives under `app/src`. Key entry points:
+
+- `App.jsx` – top-level layout and state management
+- `components/SceneTree.jsx` – hierarchical graph view and controls
+- `components/ObjectLibrary.jsx` – shape/template palette
+- `data/sceneTemplates.js` – predefined assemblies mirroring Python scene builders
