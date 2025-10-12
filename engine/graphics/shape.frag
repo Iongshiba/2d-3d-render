@@ -26,7 +26,7 @@ void main()
     vec3 diffuse = lightColor * diff;
 
     // Step 3: Specular Light
-    float specularStrength = 0.5;
+    float specularStrength = 0.25;
     vec3 cameraDirection = normalize(cameraCoord - vertexCoord);
     vec3 reflectDirection = reflect(-lightDirection, vectorNorm);
     float spec = pow(max(dot(reflectDirection, cameraDirection), 0.0), 32);

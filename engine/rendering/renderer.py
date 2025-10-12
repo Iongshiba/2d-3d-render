@@ -51,7 +51,9 @@ class Renderer:
             node.shape.lighting(
                 self.light_nodes[0].shape.get_color(),
                 self.light_nodes[0].shape.get_position(),
-                self.trackball.position,
+                self.trackball.get_camera_position(),
+                # We undo the world->view transform to get the camera pos in world space
+                # Since we are doing all light shading in world space
             )
 
     def _apply_animation(self, dt):

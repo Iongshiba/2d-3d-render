@@ -48,6 +48,9 @@ class Sphere(Shape):
                             radius * np.cos(sectors[sector_idx]) * np.cos(stacks[stack_idx]),
                             radius * np.sin(sectors[sector_idx]) * np.cos(stacks[stack_idx]),
                             radius * np.sin(stacks[stack_idx]),
+                            0.5,
+                            0.5,
+                            0.9,
                         ),
                     ]
                 )

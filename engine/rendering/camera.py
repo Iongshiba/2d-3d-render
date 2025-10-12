@@ -157,6 +157,13 @@ class Trackball:
         z_range = vec(0.1, 100) * self.distance  # proportion to dist
         return perspective(35, winsize[0] / winsize[1], *z_range)
 
+    def get_camera_position(self):
+        """World-space position of the virtual camera."""
+        view = self.get_view_matrix()
+        inv_view = np.linalg.inv(view)
+        origin = np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float32)
+        return (inv_view @ origin)[:3]
+
     def _matrix(self):
         """Rotational component of trackball position"""
         return quaternion_matrix(self.rotation)

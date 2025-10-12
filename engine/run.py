@@ -90,18 +90,25 @@ def main():
         )
     )
 
-    # # Sphere 3
-    # scene.add(
-    #     TransformNode(
-    #         "translate_3",
-    #         Translate(animate=infinite_orbit(0.001, 10)),
-    #         [
-    #             GeometryNode(
-    #                 "sphere_2", ShapeFactory.create_shape(ShapeType.SPHERE, shape_cfg)
-    #             )
-    #         ],
-    #     )
-    # )
+    # Sphere 3
+    scene.add(
+        TransformNode(
+            "translate_3",
+            Translate(0, 0, 0),
+            [
+                TransformNode(
+                    "scale",
+                    Scale(0.1, 0.1, 0.1),
+                    [
+                        GeometryNode(
+                            "sphere_2",
+                            ShapeFactory.create_shape(ShapeType.SPHERE, shape_cfg),
+                        )
+                    ],
+                )
+            ],
+        )
+    )
 
     # # Light
     # scene.add(
