@@ -4,7 +4,7 @@ from pathlib import Path
 from OpenGL import GL
 
 from utils import *
-from config import _SHAPE_FRAGMENT_PATH, _SHAPE_VERTEX_PATH
+from config import _SHAPE_FRAGMENT_PATH, _SHAPE_VERTEX_PATH, ShadingModel
 from graphics.buffer import VAO
 from graphics.shader import Shader, ShaderProgram
 from graphics.texture import Texture2D
@@ -54,6 +54,7 @@ class Shape:
         )
 
         self.texture = None
+        self.shading_mode = ShadingModel.PHONG
 
         # fmt: off
         self.transform_loc = GL.glGetUniformLocation(self.shader_program.program, "transform")
@@ -64,6 +65,7 @@ class Shape:
         self.light_color_loc = GL.glGetUniformLocation(self.shader_program.program, "lightColor")
         self.light_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "lightCoord")
         self.camera_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "cameraCoord")
+        self.shading_mode_loc = GL.glGetUniformLocation(self.shader_program.program, "shadingMode")
 
         self.shader_program.activate()
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
@@ -71,6 +73,8 @@ class Shape:
         GL.glUniformMatrix4fv(self.project_loc, 1, GL.GL_TRUE, self.identity)
         GL.glUniform1i(self.use_texture_loc, False)
         GL.glUniform1i(self.texture_data_loc, 0)
+        if self.shading_mode_loc != -1:
+            GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
         self.shader_program.deactivate()
 
     def draw(self):
@@ -116,6 +120,16 @@ class Shape:
         GL.glUniform3fv(self.light_color_loc, 1, light_color)
         GL.glUniform3fv(self.light_coord_loc, 1, light_position)
         GL.glUniform3fv(self.camera_coord_loc, 1, camera_position)
+        self.shader_program.deactivate()
+
+    def set_shading_mode(self, shading: ShadingModel) -> None:
+        if self.shading_mode_loc == -1:
+            return
+        if shading == self.shading_mode:
+            return
+        self.shading_mode = shading
+        self.shader_program.activate()
+        GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
         self.shader_program.deactivate()
 
     def _create_texture(self, path):

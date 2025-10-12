@@ -15,8 +15,7 @@ _REGISTERED_SCENES: dict[str, Scene] = {}
 def register_scene(name: str, build_fn: SceneBuilder) -> None:
     """Register a scene builder and create its graph immediately."""
 
-    root = build_fn()
-    _REGISTERED_SCENES[name] = Scene(name, root)
+    _REGISTERED_SCENES[name] = Scene(name, build_fn)
 
 
 def get_scene(name: str) -> Scene:
@@ -51,4 +50,4 @@ __all__ = [
 
 # Import default scenes so they self-register when package is loaded.
 # Additional scenes can be added alongside these modules.
-from . import atom_scene, shape_scene  # noqa: E402,F401
+from . import atom, molecule  # noqa: E402,F401

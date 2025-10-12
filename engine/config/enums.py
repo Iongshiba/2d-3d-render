@@ -41,7 +41,7 @@ class ColorMode(Enum):
 
 
 class ShadingModel(Enum):
-    NONE = 0
+    NORMAL = 0
     PHONG = 1
 
 

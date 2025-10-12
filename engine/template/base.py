@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Callable, Iterable
 
 from graphics.scene import Node
 
@@ -9,9 +9,16 @@ from graphics.scene import Node
 @dataclass(slots=True)
 class Scene:
     name: str
-    root: Node
+    builder: Callable[[], Node]
+    root: Node | None = None
 
     def get_root(self) -> Node:
+        if self.root is None:
+            self.root = self.builder()
+        return self.root
+
+    def rebuild(self) -> Node:
+        self.root = self.builder()
         return self.root
 
 
@@ -48,6 +55,11 @@ class SceneController:
 
     def listscenes(self) -> list[str]:
         return list(self.scenes.keys())
+
+    def rebuild_scene(self, name: str) -> Scene:
+        scene = self.scenes[name]
+        scene.rebuild()
+        return scene
 
     def remove_scene(self, name: str) -> None:
         if name in self.scenes:

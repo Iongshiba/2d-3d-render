@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from OpenGL import GL
 
+from config import ShadingModel
 from graphics.scene import Node, LightNode, GeometryNode, TransformNode
 from rendering.camera import Camera, CameraMovement, Trackball
 from rendering.world import Transform
@@ -27,6 +28,7 @@ class Renderer:
 
         self.use_trackball = False
         self.use_wireframe = False
+        self.shading_model = ShadingModel.PHONG
 
         self.shape_nodes = []
         self.light_nodes = []
@@ -46,15 +48,30 @@ class Renderer:
             self._collect_node(child)
 
     def _apply_lighting(self):
+        if not self.light_nodes:
+            return
+
+        if self.shading_model is ShadingModel.NORMAL:
+            return
+
+        light = self.light_nodes[0].shape
+        camera_position = (
+            self.trackball.get_camera_position()
+            if self.use_trackball
+            else self.camera.position
+        )
+
         for node in self.shape_nodes:
-            # TODO aggregate light instead of indexing 0
             node.shape.lighting(
-                self.light_nodes[0].shape.get_color(),
-                self.light_nodes[0].shape.get_position(),
-                self.trackball.get_camera_position(),
-                # We undo the world->view transform to get the camera pos in world space
-                # Since we are doing all light shading in world space
+                light.get_color(),
+                light.get_position(),
+                camera_position,
             )
+
+    def _apply_shading(self):
+        for node in self.shape_nodes:
+            if hasattr(node.shape, "set_shading_mode"):
+                node.shape.set_shading_mode(self.shading_model)
 
     def _apply_animation(self, dt):
         for node in self.transform_nodes:
@@ -63,6 +80,9 @@ class Renderer:
     def render(self, delta_time):
         if not self.app:
             raise ValueError("Must attach to an Application")
+
+        if self.root is None:
+            return
 
         aspect_ratio = (
             float(self.app.get_aspect_ratio())
@@ -82,10 +102,15 @@ class Renderer:
             else self.trackball.get_view_matrix()
         )
 
+        if self.app:
+            width, height = self.app.winsize
+            GL.glViewport(0, 0, int(width), int(height))
+
         self.shape_nodes.clear()
         self.light_nodes.clear()
         self.transform_nodes.clear()
         self._collect_node(self.root)
+        self._apply_shading()
         self._apply_animation(delta_time)
         self._apply_lighting()
         self.root.draw(None, view_matrix, projection_matrix)
@@ -111,3 +136,6 @@ class Renderer:
             GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
         else:
             GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+
+    def set_shading_model(self, shading: ShadingModel) -> None:
+        self.shading_model = shading

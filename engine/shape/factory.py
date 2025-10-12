@@ -25,6 +25,10 @@ class ShapeFactory:
     def register_shape(cls, shape_type: ShapeType, builder: FactoryCallback) -> None:
         cls._registry[shape_type] = builder
 
+    @classmethod
+    def list_registered_shapes(cls) -> list[ShapeType]:
+        return list(cls._registry.keys())
+
 
 ShapeFactory.register_shape(
     ShapeType.TRIANGLE,

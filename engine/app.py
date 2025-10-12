@@ -1,17 +1,32 @@
-import os
+from __future__ import annotations
+
 import sys
+from dataclasses import dataclass
+from typing import List, Sequence
+
 import glfw
-import ctypes
+import imgui  # type: ignore
+from imgui.integrations.glfw import GlfwRenderer  # type: ignore
 
 from OpenGL import GL
 
+from config import ShapeConfig, ShapeType, ShadingModel
 from rendering.camera import CameraMovement
+from shape.factory import ShapeFactory
+from template import SceneController, create_controller
+from template.shape_gallery import build_shape_scene
 
 
 class App:
     def __init__(self, width, height, use_trackball):
         if not glfw.init():
             raise RuntimeError("GLFW failed to initialize")
+
+        self.width = width
+        self.height = height
+        self.winsize = (width, height)
+        self.window = None
+        self.gl_version = None
 
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
@@ -23,17 +38,24 @@ class App:
         self.window = glfw.create_window(self.width, self.height, "App", None, None)
 
         if not self.window:
+            glfw.terminate()
             raise RuntimeError("Window failed to create")
 
         glfw.make_context_current(self.window)
+        fb_width, fb_height = glfw.get_framebuffer_size(self.window)
+        if fb_width and fb_height:
+            self.width, self.height = fb_width, fb_height
+        self.winsize = (self.width, self.height)
 
         # glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
         glfw.set_key_callback(self.window, self._on_press)
         glfw.set_cursor_pos_callback(self.window, self._on_mouse)
         glfw.set_scroll_callback(self.window, self._on_scroll)
         glfw.set_mouse_button_callback(self.window, self._on_mouse_press)
+        glfw.set_framebuffer_size_callback(self.window, self._on_resize)
 
         self.renderer = None
+        self.ui = None
         self._key_handlers = []
         self.pressed_keys = {
             glfw.KEY_W: False,
@@ -47,7 +69,17 @@ class App:
 
         self.use_arcball = use_trackball
 
+    def _on_resize(self, window, width, height):
+        width = max(int(width), 1)
+        height = max(int(height), 1)
+        self.width = width
+        self.height = height
+        self.winsize = (width, height)
+        GL.glViewport(0, 0, width, height)
+
     def _on_mouse_press(self, window, button, action, mods):
+        if self.ui and self.ui.wants_mouse_capture():
+            return
         if (
             button in [glfw.MOUSE_BUTTON_LEFT, glfw.MOUSE_BUTTON_RIGHT]
             and action == glfw.PRESS
@@ -62,6 +94,8 @@ class App:
             self.mouse_move = False
 
     def _on_mouse(self, window, x_pos, y_pos):
+        if self.ui and self.ui.wants_mouse_capture():
+            return
         # window   -> the window where the event occured
         # xpos     -> the recorded x position of the mouse
         # ypos     -> the recorded y position of the mouse
@@ -87,10 +121,17 @@ class App:
         # action   -> GLFW_PRESS, GLFW_RELEASE, or GLFW_REPEAT
         # mods     -> modifier bits (GLFW_MOD_SHIFT, CTRL, ALT, SUPER)
 
+        if (
+            self.ui
+            and self.ui.wants_keyboard_capture()
+            and key not in (glfw.KEY_ESCAPE, glfw.KEY_Q)
+        ):
+            return
+
         if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(window, True)
-            if key == glfw.KEY_F:
+            if key == glfw.KEY_F and self.renderer:
                 self.renderer.toggle_wireframe()
             if key in self.pressed_keys:
                 self.pressed_keys[key] = True
@@ -101,12 +142,18 @@ class App:
             handler(key, action, mods)
 
     def _on_scroll(self, window, delta_x, delta_y):
-        self.renderer.zoom_trackball(delta_y, self.winsize[1])
+        if self.ui and self.ui.wants_mouse_capture():
+            return
+        if self.renderer:
+            self.renderer.zoom_trackball(delta_y, self.winsize[1])
 
     def add_renderer(self, renderer):
         renderer.use_trackball = self.use_arcball
         renderer.app = self
         self.renderer = renderer
+
+    def add_ui(self, ui):
+        self.ui = ui
 
     def register_key_handler(self, handler):
         self._key_handlers.append(handler)
@@ -124,15 +171,27 @@ class App:
             delta_time = min(current_time - self._last_time, 0.05)
             self._last_time = current_time
 
+            glfw.poll_events()
+
+            if self.ui:
+                self.ui.process_inputs()
+                self.ui.new_frame(delta_time, self.winsize)
+
             # Clear once per frame
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-            # Updating WASD movement
-            self._update_camera(delta_time)
-            self.renderer.render(delta_time)
+            if self.renderer:
+                if not (self.ui and self.ui.wants_keyboard_capture()):
+                    self._update_camera(delta_time)
+                self.renderer.render(delta_time)
 
-            glfw.poll_events()
+            if self.ui:
+                self.ui.render()
+
             glfw.swap_buffers(self.window)
+
+        if self.ui:
+            self.ui.shutdown()
 
         glfw.terminate()
 
@@ -148,3 +207,154 @@ class App:
             self.renderer.move_camera(CameraMovement.LEFT, delta_time)
         if self.pressed_keys.get(glfw.KEY_D):
             self.renderer.move_camera(CameraMovement.RIGHT, delta_time)
+
+
+@dataclass(slots=True)
+class MenuOption:
+    label: str
+    kind: str  # 'template' or 'shape'
+    value: str | ShapeType
+
+
+class SceneControlOverlay:
+    """Immediate-mode UI overlay for selecting scenes, shapes, and shading."""
+
+    _PANEL_MIN_WIDTH = 240.0
+    _PANEL_MAX_WIDTH = 340.0
+
+    def __init__(self, app: App, renderer):
+        self.app = app
+        self.renderer = renderer
+
+        # ImGui setup keeps context co-located with GLFW usage for easier lifecycle management.
+        self._imgui = imgui
+        self._context = imgui.create_context()
+        self._impl = GlfwRenderer(app.window, attach_callbacks=False)
+        self._impl.refresh_font_texture()
+
+        self._scene_controller: SceneController = create_controller()
+        self._shape_config = ShapeConfig()
+        self._options: List[MenuOption] = self._build_options()
+        if not self._options:
+            raise RuntimeError(
+                "No templates or shapes were discovered for the control overlay."
+            )
+
+        self._current_option: MenuOption | None = None
+
+        self.shading_model = ShadingModel.PHONG
+        self._shading_labels: dict[ShadingModel, str] = {
+            ShadingModel.NORMAL: "Normal",
+            ShadingModel.PHONG: "Phong",
+        }
+        self.renderer.set_shading_model(self.shading_model)
+
+        # Activate first option so the renderer has a scene before the main loop.
+        self._apply_selection(self._options[0])
+
+    def process_inputs(self) -> None:
+        self._impl.process_inputs()
+
+    def new_frame(self, _delta_time: float, winsize: Sequence[int | float]) -> None:
+        self._imgui.new_frame()
+        self._render_panel(winsize)
+
+    def render(self) -> None:
+        self._imgui.render()
+        self._impl.render(self._imgui.get_draw_data())
+
+    def shutdown(self) -> None:
+        self._impl.shutdown()
+        self._imgui.destroy_context(self._context)
+
+    def wants_keyboard_capture(self) -> bool:
+        return bool(self._imgui.get_io().want_capture_keyboard)
+
+    def wants_mouse_capture(self) -> bool:
+        return bool(self._imgui.get_io().want_capture_mouse)
+
+    def _build_options(self) -> List[MenuOption]:
+        options: List[MenuOption] = []
+
+        for name in sorted(self._scene_controller.listscenes()):
+            label = f"Template • {self._format_name(name)}"
+            options.append(MenuOption(label=label, kind="template", value=name))
+
+        for shape_type in sorted(
+            ShapeFactory.list_registered_shapes(), key=lambda item: item.name
+        ):
+            if shape_type in {ShapeType.LIGHT_SOURCE, ShapeType.MODEL}:
+                continue
+            label = f"Shape • {self._format_name(shape_type.name)}"
+            options.append(MenuOption(label=label, kind="shape", value=shape_type))
+
+        return options
+
+    def _apply_selection(self, option: MenuOption) -> None:
+        if option.kind == "template":
+            scene = self._scene_controller.set_current(option.value)
+            root = scene.rebuild()
+            self.renderer.set_scene(root)
+        else:
+            root = build_shape_scene(option.value, self._shape_config)
+            self.renderer.set_scene(root)
+
+        self._current_option = option
+        self.app.set_window_title(f"App - {option.label}")
+
+    def _render_panel(self, winsize: Sequence[int | float]) -> None:
+        width = float(winsize[0]) if winsize else float(self.app.width)
+        height = float(winsize[1]) if len(winsize) > 1 else float(self.app.height)
+
+        panel_width = max(
+            self._PANEL_MIN_WIDTH, min(self._PANEL_MAX_WIDTH, width * 0.32)
+        )
+        panel_x = max(0.0, width - panel_width)
+
+        flags = (
+            self._imgui.WINDOW_NO_RESIZE
+            | self._imgui.WINDOW_NO_COLLAPSE
+            | self._imgui.WINDOW_NO_MOVE
+        )
+
+        self._imgui.set_next_window_position(panel_x, 0.0, condition=self._imgui.ALWAYS)
+        self._imgui.set_next_window_size(
+            panel_width, height, condition=self._imgui.ALWAYS
+        )
+
+        self._imgui.begin("Scene Controls", flags=flags)
+
+        current_label = self._current_option.label if self._current_option else "None"
+        if self._imgui.begin_combo("Scene / Object", current_label):
+            for option in self._options:
+                is_selected = option is self._current_option
+                clicked, _ = self._imgui.selectable(option.label, is_selected)
+                if clicked:
+                    self._apply_selection(option)
+                if is_selected:
+                    self._imgui.set_item_default_focus()
+            self._imgui.end_combo()
+
+        self._imgui.spacing()
+
+        shading_label = self._shading_labels[self.shading_model]
+        if self._imgui.begin_combo("Shading", shading_label):
+            for model, label in self._shading_labels.items():
+                is_selected = model is self.shading_model
+                clicked, _ = self._imgui.selectable(label, is_selected)
+                if clicked and model is not self.shading_model:
+                    self.shading_model = model
+                    self.renderer.set_shading_model(model)
+                if is_selected:
+                    self._imgui.set_item_default_focus()
+            self._imgui.end_combo()
+
+        self._imgui.spacing()
+        self._imgui.text_wrapped(
+            "Templates combine multiple objects and animations, while shapes let you preview a single primitive from the library."
+        )
+        self._imgui.end()
+
+    @staticmethod
+    def _format_name(value: str) -> str:
+        return value.replace("_", " ").title()
