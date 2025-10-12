@@ -22,9 +22,14 @@ const getShapeDisplayName = (shapeId) => {
 }
 
 const App = () => {
+  // useRef is a container that hold anything and does not trigger re-render when modified
   const sceneCounter = useRef(2)
   const nodeCounter = useRef(1)
 
+  // useState is a container that hold anything and does trigger re-render when modified
+  // parameter of setScenes:
+  //    A value of the same type the state holds (e.g., number, object, array).
+  //    A function that receives the previous state (prevState) and returns the next state.
   const [scenes, setScenes] = useState(() => [
     {
       id: 'scene-1',
@@ -34,6 +39,7 @@ const App = () => {
   ])
   const [activeSceneId, setActiveSceneId] = useState('scene-1')
 
+  // 
   const createNodeId = useCallback((prefix = 'node') => {
     const id = `${prefix}-${nodeCounter.current}`
     nodeCounter.current += 1

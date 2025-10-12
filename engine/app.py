@@ -14,7 +14,7 @@ from config import ShapeConfig, ShapeType, ShadingModel
 from rendering.camera import CameraMovement
 from shape.factory import ShapeFactory
 from template import SceneController, create_controller
-from template.shape_gallery import build_shape_scene
+from template.shape_gallery import build_shape_scene, is_2d_shape
 
 
 class App:
@@ -234,8 +234,14 @@ class SceneControlOverlay:
 
         self._scene_controller: SceneController = create_controller()
         self._shape_config = ShapeConfig()
-        self._options: List[MenuOption] = self._build_options()
-        if not self._options:
+        (
+            self._template_options,
+            self._shape_options_2d,
+            self._shape_options_3d,
+        ) = self._build_options()
+        if not (
+            self._template_options or self._shape_options_2d or self._shape_options_3d
+        ):
             raise RuntimeError(
                 "No templates or shapes were discovered for the control overlay."
             )
@@ -249,8 +255,13 @@ class SceneControlOverlay:
         }
         self.renderer.set_shading_model(self.shading_model)
 
-        # Activate first option so the renderer has a scene before the main loop.
-        self._apply_selection(self._options[0])
+        # Activate first available option so the renderer has a scene before the main loop.
+        initial_option = (
+            self._template_options[:1]
+            or self._shape_options_3d[:1]
+            or self._shape_options_2d[:1]
+        )[0]
+        self._apply_selection(initial_option)
 
     def process_inputs(self) -> None:
         self._impl.process_inputs()
@@ -273,31 +284,49 @@ class SceneControlOverlay:
     def wants_mouse_capture(self) -> bool:
         return bool(self._imgui.get_io().want_capture_mouse)
 
-    def _build_options(self) -> List[MenuOption]:
-        options: List[MenuOption] = []
+    def _build_options(
+        self,
+    ) -> tuple[List[MenuOption], List[MenuOption], List[MenuOption]]:
+        template_options: List[MenuOption] = []
+        shape_options_2d: List[MenuOption] = []
+        shape_options_3d: List[MenuOption] = []
 
         for name in sorted(self._scene_controller.listscenes()):
             label = f"Template • {self._format_name(name)}"
-            options.append(MenuOption(label=label, kind="template", value=name))
+            template_options.append(
+                MenuOption(label=label, kind="template", value=name)
+            )
 
         for shape_type in sorted(
             ShapeFactory.list_registered_shapes(), key=lambda item: item.name
         ):
             if shape_type in {ShapeType.LIGHT_SOURCE, ShapeType.MODEL}:
                 continue
-            label = f"Shape • {self._format_name(shape_type.name)}"
-            options.append(MenuOption(label=label, kind="shape", value=shape_type))
+            label = f"{self._format_name(shape_type.name)}"
+            option = MenuOption(label=label, kind="shape", value=shape_type)
+            if is_2d_shape(shape_type):
+                shape_options_2d.append(option)
+            else:
+                shape_options_3d.append(option)
 
-        return options
+        return template_options, shape_options_2d, shape_options_3d
 
     def _apply_selection(self, option: MenuOption) -> None:
         if option.kind == "template":
             scene = self._scene_controller.set_current(option.value)
             root = scene.rebuild()
             self.renderer.set_scene(root)
+            self.renderer.set_face_culling(True)
+            self.renderer.set_shading_model(ShadingModel.PHONG)
+            self.shading_model = ShadingModel.PHONG
         else:
             root = build_shape_scene(option.value, self._shape_config)
+            is_shape_2d = is_2d_shape(option.value)
             self.renderer.set_scene(root)
+            self.renderer.set_face_culling(not is_shape_2d)
+            next_shading = ShadingModel.NORMAL if is_shape_2d else ShadingModel.PHONG
+            self.renderer.set_shading_model(next_shading)
+            self.shading_model = next_shading
 
         self._current_option = option
         self.app.set_window_title(f"App - {option.label}")
@@ -325,15 +354,13 @@ class SceneControlOverlay:
         self._imgui.begin("Scene Controls", flags=flags)
 
         current_label = self._current_option.label if self._current_option else "None"
-        if self._imgui.begin_combo("Scene / Object", current_label):
-            for option in self._options:
-                is_selected = option is self._current_option
-                clicked, _ = self._imgui.selectable(option.label, is_selected)
-                if clicked:
-                    self._apply_selection(option)
-                if is_selected:
-                    self._imgui.set_item_default_focus()
-            self._imgui.end_combo()
+
+        if self._template_options:
+            self._render_combo("Templates", self._template_options)
+        if self._shape_options_2d:
+            self._render_combo("2D Shapes", self._shape_options_2d)
+        if self._shape_options_3d:
+            self._render_combo("3D Shapes", self._shape_options_3d)
 
         self._imgui.spacing()
 
@@ -358,3 +385,18 @@ class SceneControlOverlay:
     @staticmethod
     def _format_name(value: str) -> str:
         return value.replace("_", " ").title()
+
+    def _render_combo(self, label: str, options: Sequence[MenuOption]) -> None:
+        active_label = (
+            self._current_option.label if self._current_option in options else "Select"
+        )
+        if self._imgui.begin_combo(label, active_label):
+            for option in options:
+                is_selected = option is self._current_option
+                display_label = option.label
+                clicked, _ = self._imgui.selectable(display_label, is_selected)
+                if clicked:
+                    self._apply_selection(option)
+                if is_selected:
+                    self._imgui.set_item_default_focus()
+            self._imgui.end_combo()

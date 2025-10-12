@@ -29,6 +29,7 @@ class Renderer:
         self.use_trackball = False
         self.use_wireframe = False
         self.shading_model = ShadingModel.PHONG
+        self.cull_face_enabled = config.cull_face
 
         self.shape_nodes = []
         self.light_nodes = []
@@ -139,3 +140,10 @@ class Renderer:
 
     def set_shading_model(self, shading: ShadingModel) -> None:
         self.shading_model = shading
+
+    def set_face_culling(self, enabled: bool) -> None:
+        if enabled and not self.cull_face_enabled:
+            GL.glEnable(GL.GL_CULL_FACE)
+        elif not enabled and self.cull_face_enabled:
+            GL.glDisable(GL.GL_CULL_FACE)
+        self.cull_face_enabled = enabled

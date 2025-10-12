@@ -8,11 +8,46 @@ from rendering.world import Rotate, Scale, Translate
 from shape.factory import ShapeFactory
 
 
+TWO_D_SHAPES: set[ShapeType] = {
+    ShapeType.TRIANGLE,
+    ShapeType.RECTANGLE,
+    ShapeType.PENTAGON,
+    ShapeType.HEXAGON,
+    ShapeType.CIRCLE,
+    ShapeType.ELLIPSE,
+    ShapeType.TRAPEZOID,
+    ShapeType.STAR,
+    ShapeType.ARROW,
+    ShapeType.EQUATION,
+}
+
+THREE_D_SHAPES: set[ShapeType] = {
+    ShapeType.CUBE,
+    ShapeType.SPHERE,
+    ShapeType.CYLINDER,
+    ShapeType.CONE,
+    ShapeType.TRUNCATED_CONE,
+    ShapeType.TETRAHEDRON,
+    ShapeType.TORUS,
+    ShapeType.MODEL,
+}
+
+
+def is_2d_shape(shape_type: ShapeType) -> bool:
+    return shape_type in TWO_D_SHAPES
+
+
+def is_3d_shape(shape_type: ShapeType) -> bool:
+    return shape_type in THREE_D_SHAPES
+
+
 def build_shape_scene(shape_type: ShapeType, config: ShapeConfig | None = None) -> Node:
     """Create a standalone scene for a single shape with a default light."""
 
     if shape_type is ShapeType.LIGHT_SOURCE:
-        raise ValueError("Light source is reserved for lighting and cannot be previewed as a standalone scene.")
+        raise ValueError(
+            "Light source is reserved for lighting and cannot be previewed as a standalone scene."
+        )
 
     # Copy incoming configuration so UI interactions do not mutate shared state.
     shape_cfg = replace(config) if config is not None else ShapeConfig()
@@ -25,7 +60,13 @@ def build_shape_scene(shape_type: ShapeType, config: ShapeConfig | None = None) 
     model = TransformNode(
         "model_transform",
         Scale(1.0, 1.0, 1.0),
-        [TransformNode("model_rotation", Rotate(axis=(0.0, 1.0, 0.0), angle=0.0), [geometry_node])],
+        [
+            TransformNode(
+                "model_rotation",
+                Rotate(axis=(0.0, 1.0, 0.0), angle=0.0),
+                [geometry_node],
+            )
+        ],
     )
     root.add(model)
 

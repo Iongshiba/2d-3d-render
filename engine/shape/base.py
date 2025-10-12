@@ -127,6 +127,7 @@ class Shape:
             return
         if shading == self.shading_mode:
             return
+        print(shading)
         self.shading_mode = shading
         self.shader_program.activate()
         GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
