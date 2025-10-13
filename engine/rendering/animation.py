@@ -16,9 +16,9 @@ def infinite_spin(speed: float = 1.0) -> AnimationFn:
 
 
 def circular_orbit(
-    speed: float = 1.0, radius: float = 1.0, axis: str = "xy"
+    phase: float = 0.0, speed: float = 1.0, radius: float = 1.0, axis: str = "xy"
 ) -> AnimationFn:
-    theta = 0.0
+    theta = phase
     axis = axis.lower()
     axes = {
         "xy": (0, 1),

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import numpy as np
 
 from config import ShapeConfig, ShapeType
@@ -41,11 +42,11 @@ def _generate_nucleus(x, y, z, radius, sector, stack):
     return TransformNode("nucleus", Translate(x, y, z), atom_sphere)
 
 
-def _generate_electron(radius, speed):
+def _generate_electron(phase, radius, speed):
     color = (0.2, 0.2, 0.8)
     return TransformNode(
         "electron",
-        Translate(0.0, 0.0, 0.0, circular_orbit(speed, radius, axis="xz")),
+        Translate(0.0, 0.0, 0.0, circular_orbit(phase, speed, radius, axis="xz")),
         [GeometryNode("electron", Sphere(0.8, 20, 20, color))],
     )
 
@@ -63,9 +64,16 @@ def build() -> Node:
     scene = Node("atom_root")
     scene.add(_generate_nucleus(0, 0, 0, 1, 6, 3))
 
-    for idx, radius in enumerate((5.0, 10.0, 15.0)):
+    electron_meta = [
+        *[(phase, 4.0, 0.5) for phase in np.linspace(0, np.pi * 2, 4)],
+        *[(phase, 8.0, 0.6) for phase in np.linspace(0, np.pi * 2, 6)],
+        *[(phase, 12.0, 0.7) for phase in np.linspace(0, np.pi * 2, 12)],
+        *[(phase, 16.0, 0.8) for phase in np.linspace(0, np.pi * 2, 24)],
+    ]
+
+    for phase, radius, speed in electron_meta:
         ring = _generate_orbit_ring(radius)
-        electron = _generate_electron(radius, speed=1.0 + idx * 0.2)
+        electron = _generate_electron(phase, radius, speed)
         scene.add(ring)
         scene.add(electron)
 
@@ -74,7 +82,7 @@ def build() -> Node:
     scene.add(
         TransformNode(
             "light_parent",
-            Translate(15.0, 15.0, 15.0),
+            Translate(30.0, 30.0, 30.0),
             [LightNode("light", light)],
         )
     )

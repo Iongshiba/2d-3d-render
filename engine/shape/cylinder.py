@@ -53,10 +53,10 @@ class Cylinder(Shape):
 
         top_coords = vertices_to_coords(top_circle)
         top_colors = vertices_to_colors(top_circle)
-        top_norms = np.tile(vector_up, len(top_circle))
+        top_norms = np.tile(vector_up, (len(top_circle), 1))
         bottom_coords = vertices_to_coords(bottom_circle)
         bottom_colors = vertices_to_colors(bottom_circle)
-        bottom_norms = np.tile(-vector_up, len(bottom_circle))
+        bottom_norms = np.tile(-vector_up, (len(bottom_circle), 1))
         side_norms = np.array(side_norms, dtype=np.float32)
 
         side_coords = np.empty(

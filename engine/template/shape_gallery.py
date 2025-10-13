@@ -75,7 +75,7 @@ def build_shape_scene(shape_type: ShapeType, config: ShapeConfig | None = None) 
     light_node = LightNode("preview_light", light_shape)
     light_transform = TransformNode(
         "light_transform",
-        Translate(6.0, 6.0, 6.0),
+        Translate(30.0, 30.0, 30.0),
         [light_node],
     )
     root.add(light_transform)

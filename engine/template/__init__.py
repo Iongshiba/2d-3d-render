@@ -50,4 +50,4 @@ __all__ = [
 
 # Import default scenes so they self-register when package is loaded.
 # Additional scenes can be added alongside these modules.
-from . import atom, molecule  # noqa: E402,F401
+from . import atom, molecule, water, carbon_dioxide  # noqa: E402,F401
