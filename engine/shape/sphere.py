@@ -10,8 +10,19 @@ from shape.base import Shape, Part
 
 # fmt: off
 class Sphere(Shape):
-    def __init__(self, radius, sector, stack, color=(None, None, None), vertex_file=None, fragment_file=None):
+    def __init__(
+        self,
+        radius,
+        sector,
+        stack,
+        color=(None, None, None),
+        vertex_file=None,
+        fragment_file=None,
+        texture_file=None,
+    ):
         super().__init__(vertex_file, fragment_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
         # fix the last missing piece when draw with linspace
         sector += 1

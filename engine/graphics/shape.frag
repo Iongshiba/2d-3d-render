@@ -21,8 +21,7 @@ void main()
         : vertexColor;
 
     if (shadingMode == 0) {
-        vec3 normalColor = normalize(vertexNorm) * 0.5 + 0.5;
-        color = vec4(normalColor, 1.0);
+        color = vec4(vertexColor, 1.0);
         return;
     }
 
@@ -35,10 +34,10 @@ void main()
     float spec = pow(max(dot(reflectDirection, cameraDirection), 0.0), 32);
     float specularStrength = 0.25;
 
-    vec3 ambient = lightColor * ambientStrength * baseColor;
-    vec3 diffuse = lightColor * diff * baseColor;
+    vec3 ambient = lightColor * ambientStrength;
+    vec3 diffuse = lightColor * diff;
     vec3 specular = lightColor * specularStrength * spec;
 
-    vec3 finalColor = ambient + diffuse + specular;
+    vec3 finalColor = (ambient + diffuse + specular) * baseColor;
     color = vec4(finalColor, 1.0);
 }

@@ -10,8 +10,16 @@ from shape.base import Shape, Part
 
 # fmt: off
 class Cube(Shape):
-    def __init__(self, vertex_file, fragment_file):
+    def __init__(
+        self,
+        color=(None, None, None),
+        vertex_file=None,
+        fragment_file=None,
+        texture_file=None,
+    ) -> None:
         super().__init__(vertex_file, fragment_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
         vertices = [
             # back square with normal outside
@@ -29,12 +37,16 @@ class Cube(Shape):
         norms = np.array([
             [0.0, 0.0, -1.0],
             [0.0, 0.0, -1.0],
-            [0.0, 0.0, -1.0],
-            [0.0, 0.0, -1.0],
             [0.0, 0.0, 1.0],
             [0.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0],            
+            [-1.0, 0.0, 0.0],
+            [-1.0, 0.0, 0.0],
+            [1.0, 0.0, 1.0],
+            [1.0, 0.0, 1.0],
+            [0.0, -1.0, 1.0],
+            [0.0, -1.0, 1.0],
+            [0.0, 1.0, 1.0],
+            [0.0, 1.0, 1.0],                        
         ], dtype=np.float32)
         
         coords = vertices_to_coords(vertices)

@@ -9,8 +9,16 @@ from shape.base import Shape, Part
 
 
 class Pentagon(Shape):
-    def __init__(self, vertex_file, fragment_file):
+    def __init__(
+        self,
+        color=(None, None, None),
+        vertex_file=None,
+        fragment_file=None,
+        texture_file=None,
+    ) -> None:
         super().__init__(vertex_file, fragment_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
         angles = np.linspace(0, 2 * np.pi, 6)
         vertices = [Vertex(0.0, 0.0, 0.0)]

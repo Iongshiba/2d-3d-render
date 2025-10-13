@@ -9,10 +9,21 @@ from shape.base import Shape, Part
 
 
 class Ellipse(Shape):
-    def __init__(self, vertex_file, fragment_file, a, b):
+    def __init__(
+        self,
+        sector: int,
+        a: float,
+        b: float,
+        color=(None, None, None),
+        vertex_file=None,
+        fragment_file=None,
+        texture_file=None,
+    ) -> None:
         super().__init__(vertex_file, fragment_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
-        angles = np.linspace(0, 2 * np.pi, 100)
+        angles = np.linspace(0, 2 * np.pi, max(sector, 3))
         vertices = [Vertex(0.0, 0.0, 0.0)]
         vertices.extend(
             [

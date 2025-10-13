@@ -16,8 +16,11 @@ class Ring(Shape):
         color=(None, None, None),
         vertex_file=None,
         fragment_file=None,
+        texture_file=None,
     ):
         super().__init__(vertex_file, fragment_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
         angles = np.linspace(0, 2 * np.pi, sector + 1)
         vertices = [

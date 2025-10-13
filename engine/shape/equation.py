@@ -9,8 +9,19 @@ from shape.base import Shape, Part
 
 
 class Equation(Shape):
-    def __init__(self, vertex_file, shader_file, expression, mesh_size, mesh_density):
-        super().__init__(vertex_file, shader_file)
+    def __init__(
+        self,
+        expression,
+        mesh_size,
+        mesh_density,
+        color=(None, None, None),
+        vertex_file=None,
+        fragment_file=None,
+        texture_file=None,
+    ):
+        super().__init__(vertex_file, fragment_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
         self.expression = expression
         self.mesh_size = mesh_size

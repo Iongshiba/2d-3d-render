@@ -61,7 +61,7 @@ def _build_planet_system(
         Rotate(
             axis=(0.0, 1.0, 0.0),
             angle=0.0,
-            animate=circular_orbit(speed=orbit_speed, radius=orbit_radius, axis="xz"),
+            # animate=circular_orbit(speed=orbit_speed, radius=orbit_radius, axis="xz"),
         ),
         [
             TransformNode(f"{name}_planet_spin", planet_rotate, [planet_node]),

@@ -45,7 +45,7 @@ def _generate_electron(radius, speed):
     color = (0.2, 0.2, 0.8)
     return TransformNode(
         "electron",
-        Translate(0.0, radius, 0.0, circular_orbit(speed, radius, axis="xz")),
+        Translate(0.0, 0.0, 0.0, circular_orbit(speed, radius, axis="xz")),
         [GeometryNode("electron", Sphere(0.8, 20, 20, color))],
     )
 

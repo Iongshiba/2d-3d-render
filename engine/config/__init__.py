@@ -60,8 +60,8 @@ class ShapeConfig:
 
     torus_sectors: int = 50
     torus_stacks: int = 50
-    torus_horizontal_radius: float = 10.0
-    torus_vertical_radius: float = 5.0
+    torus_horizontal_radius: float = 2.0
+    torus_vertical_radius: float = 1
 
     equation_expression: str = "x + y"
     equation_mesh_size: int = 10
@@ -70,6 +70,12 @@ class ShapeConfig:
     texture_file: str = ""
 
     model_file: str = ""
+
+    base_color: tuple[float | None, float | None, float | None] = (
+        None,
+        None,
+        None,
+    )
 
 
 @dataclass(slots=True)

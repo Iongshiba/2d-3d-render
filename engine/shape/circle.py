@@ -9,8 +9,17 @@ from shape.base import Shape, Part
 
 
 class Circle(Shape):
-    def __init__(self, vertex_file, fragment_file, sector):
+    def __init__(
+        self,
+        sector: int,
+        color: tuple[float | None, float | None, float | None] = (None, None, None),
+        vertex_file: str | None = None,
+        fragment_file: str | None = None,
+        texture_file: str | None = None,
+    ) -> None:
         super().__init__(vertex_file, fragment_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
         angles = np.linspace(0, 2 * np.pi, sector + 1)
         vertices = [Vertex(0.0, 0.0, 0.0)]
@@ -26,7 +35,7 @@ class Circle(Shape):
         )
 
         coords = vertices_to_coords(vertices)
-        colors = vertices_to_colors(vertices)
+        colors = self._apply_color_override(vertices_to_colors(vertices), color)
 
         vao = VAO()
         vao.add_vbo(

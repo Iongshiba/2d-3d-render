@@ -11,6 +11,7 @@ from imgui.integrations.glfw import GlfwRenderer  # type: ignore
 from OpenGL import GL
 
 from config import ShapeConfig, ShapeType, ShadingModel
+from config.palette import COLOR_PRESETS, ColorPreset
 from rendering.camera import CameraMovement
 from shape.factory import ShapeFactory
 from template import SceneController, create_controller
@@ -234,6 +235,9 @@ class SceneControlOverlay:
 
         self._scene_controller: SceneController = create_controller()
         self._shape_config = ShapeConfig()
+        self._color_presets: Sequence[ColorPreset] = COLOR_PRESETS
+        self._color_index = 0
+        self._shape_config.base_color = self._color_presets[self._color_index].rgb
         (
             self._template_options,
             self._shape_options_2d,
@@ -320,6 +324,9 @@ class SceneControlOverlay:
             self.renderer.set_shading_model(ShadingModel.PHONG)
             self.shading_model = ShadingModel.PHONG
         else:
+            selected_color = self._color_presets[self._color_index].rgb
+            self._shape_config.base_color = selected_color
+            self._shape_config.sphere_color = selected_color
             root = build_shape_scene(option.value, self._shape_config)
             is_shape_2d = is_2d_shape(option.value)
             self.renderer.set_scene(root)
@@ -353,8 +360,6 @@ class SceneControlOverlay:
 
         self._imgui.begin("Scene Controls", flags=flags)
 
-        current_label = self._current_option.label if self._current_option else "None"
-
         if self._template_options:
             self._render_combo("Templates", self._template_options)
         if self._shape_options_2d:
@@ -372,6 +377,21 @@ class SceneControlOverlay:
                 if clicked and model is not self.shading_model:
                     self.shading_model = model
                     self.renderer.set_shading_model(model)
+                if is_selected:
+                    self._imgui.set_item_default_focus()
+            self._imgui.end_combo()
+
+        color_label = self._color_presets[self._color_index].name
+        if self._imgui.begin_combo("Color Preset", color_label):
+            for idx, preset in enumerate(self._color_presets):
+                is_selected = idx == self._color_index
+                clicked, _ = self._imgui.selectable(preset.name, is_selected)
+                if clicked and idx != self._color_index:
+                    self._color_index = idx
+                    self._shape_config.base_color = preset.rgb
+                    self._shape_config.sphere_color = preset.rgb
+                    if self._current_option and self._current_option.kind == "shape":
+                        self._apply_selection(self._current_option)
                 if is_selected:
                     self._imgui.set_item_default_focus()
             self._imgui.end_combo()

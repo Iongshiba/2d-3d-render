@@ -133,6 +133,18 @@ class Shape:
         GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
         self.shader_program.deactivate()
 
+    @staticmethod
+    def _apply_color_override(
+        colors: np.ndarray, override: tuple[float | None, float | None, float | None] | None
+    ) -> np.ndarray:
+        if not override:
+            return colors
+
+        for idx, channel in enumerate(override):
+            if channel is not None:
+                colors[:, idx] = channel
+        return colors
+
     def _create_texture(self, path):
         img_data, width, height = load_texture(path)
         self.texture = Texture2D()

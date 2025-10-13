@@ -8,10 +8,18 @@ from graphics.buffer import VAO
 
 
 class Model(Shape):
-    def __init__(self, vertex_file, fragment_file, model_path, texture_path):
+    def __init__(
+        self,
+        model_path,
+        color=(None, None, None),
+        vertex_file=None,
+        fragment_file=None,
+        texture_file=None,
+    ):
         super().__init__(vertex_file, fragment_file)
 
-        self._create_texture(texture_path)
+        if texture_file:
+            self._create_texture(texture_file)
 
         model_data = load_model(model_path)
 

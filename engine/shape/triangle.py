@@ -10,9 +10,16 @@ from shape.base import Shape, Part
 
 # TODO: CUSTOMIZABLE
 class Triangle(Shape):
-    def __init__(self, vertex_file, fragment_file, texture_file=None):
+    def __init__(
+        self,
+        color=(None, None, None),
+        vertex_file=None,
+        fragment_file=None,
+        texture_file=None,
+    ):
         super().__init__(vertex_file, fragment_file)
-        self._create_texture(texture_file)
+        if texture_file:
+            self._create_texture(texture_file)
 
         # fmt: off
         vertices = [
@@ -50,16 +57,17 @@ class Triangle(Shape):
             normalized=False,
             stride=0,
             offset=None,
-        )        
-        vao.add_vbo(
-            location=3,
-            data=texcoords,
-            ncomponents=texcoords.shape[1],
-            dtype=GL.GL_FLOAT,
-            normalized=False,
-            stride=0,
-            offset=None,
         )
+        if texture_file:
+            vao.add_vbo(
+                location=3,
+                data=texcoords,
+                ncomponents=texcoords.shape[1],
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
 
         self.shapes.append(
             Part(vao, GL.GL_TRIANGLES, len(vertices)),

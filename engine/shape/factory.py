@@ -6,6 +6,7 @@ from typing import Callable, Dict
 
 from config import ShapeType, ShapeConfig
 from config import _SHAPE_VERTEX_PATH, _SHAPE_FRAGMENT_PATH, _LIGHT_FRAGMENT_PATH
+from graphics.vertex import Vertex
 from shape import *
 
 FactoryCallback = Callable[[ShapeConfig], Shape]
@@ -19,7 +20,17 @@ class ShapeFactory:
         builder = cls._registry.get(shape_type)
         if builder is None:
             raise ValueError(f"Unknown shape type: {shape_type!r}")
-        return builder(config)
+        previous_color = Vertex.get_global_color()
+        color_override = (
+            _resolve_color(config)
+            if shape_type is not ShapeType.LIGHT_SOURCE
+            else (None, None, None)
+        )
+        Vertex.set_global_color(color_override)
+        try:
+            return builder(config)
+        finally:
+            Vertex.set_global_color(previous_color)
 
     @classmethod
     def register_shape(cls, shape_type: ShapeType, builder: FactoryCallback) -> None:
@@ -30,133 +41,167 @@ class ShapeFactory:
         return list(cls._registry.keys())
 
 
+def _resolve_color(cfg: ShapeConfig) -> tuple[float | None, float | None, float | None]:
+    color = cfg.base_color
+    if color is None:
+        return (None, None, None)
+    return color
+
+
 ShapeFactory.register_shape(
     ShapeType.TRIANGLE,
     lambda cfg: Triangle(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
-        cfg.texture_file,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.RECTANGLE,
     lambda cfg: Rectangle(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.PENTAGON,
     lambda cfg: Pentagon(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.HEXAGON,
-    lambda cfg: Pentagon(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+    lambda cfg: Hexagon(
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.CIRCLE,
     lambda cfg: Circle(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.circle_sector,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.ELLIPSE,
     lambda cfg: Ellipse(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.ellipse_sector,
         cfg.ellipse_a,
         cfg.ellipse_b,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.TRAPEZOID,
     lambda cfg: Trapezoid(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.STAR,
     lambda cfg: Star(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.star_wing,
         cfg.star_outer_radius,
         cfg.star_inner_radius,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.ARROW,
     lambda cfg: Arrow(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.TETRAHEDRON,
     lambda cfg: Tetrahedron(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.CUBE,
     lambda cfg: Cube(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.CYLINDER,
     lambda cfg: Cylinder(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.cylinder_sectors,
         cfg.cylinder_height,
         cfg.cylinder_radius,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.CONE,
     lambda cfg: Cone(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.cone_height,
         cfg.cone_radius,
         cfg.cone_sectors,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.TRUNCATED_CONE,
     lambda cfg: TruncatedCone(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.truncated_height,
         cfg.truncated_top_radius,
         cfg.truncated_bottom_radius,
         cfg.truncated_sectors,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
@@ -166,50 +211,58 @@ ShapeFactory.register_shape(
         cfg.sphere_radius,
         cfg.sphere_sectors,
         cfg.sphere_stacks,
-        cfg.sphere_color,
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
+        color=cfg.sphere_color,
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.TORUS,
     lambda cfg: Torus(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.torus_sectors,
         cfg.torus_stacks,
         cfg.torus_horizontal_radius,
         cfg.torus_vertical_radius,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.EQUATION,
     lambda cfg: Equation(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.equation_expression,
         cfg.equation_mesh_size,
         cfg.equation_mesh_density,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.MODEL,
     lambda cfg: Model(
-        _SHAPE_VERTEX_PATH,
-        _SHAPE_FRAGMENT_PATH,
         cfg.model_file,
-        cfg.texture_file,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
     ),
 )
 
 ShapeFactory.register_shape(
     ShapeType.LIGHT_SOURCE,
     lambda cfg: LightSource(
-        _SHAPE_VERTEX_PATH,
-        _LIGHT_FRAGMENT_PATH,
+        color=(1.0, 1.0, 1.0),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_LIGHT_FRAGMENT_PATH,
+        texture_file=None,
     ),
 )
 
