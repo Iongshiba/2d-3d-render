@@ -211,12 +211,26 @@ ShapeFactory.register_shape(
         cfg.sphere_radius,
         cfg.sphere_sectors,
         cfg.sphere_stacks,
-        color=cfg.sphere_color,
+        color=_resolve_color(cfg),
         vertex_file=_SHAPE_VERTEX_PATH,
         fragment_file=_SHAPE_FRAGMENT_PATH,
         texture_file=cfg.texture_file,
     ),
 )
+
+ShapeFactory.register_shape(
+    ShapeType.HEART,
+    lambda cfg: Heart(
+        cfg.heart_sector,
+        cfg.heart_stack,
+        cfg.heart_scale,
+        color=_resolve_color(cfg),
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
+    ),
+)
+
 
 ShapeFactory.register_shape(
     ShapeType.TORUS,

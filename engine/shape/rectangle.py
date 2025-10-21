@@ -22,11 +22,21 @@ class Rectangle(Shape):
 
         # fmt: off
         vertices = [
-            Vertex(-1.0, -0.5, 0.0),
-            Vertex(-1.0,  0.5, 0.0),
-            Vertex( 1.0, -0.5, 0.0),
-            Vertex( 1.0,  0.5, 0.0),
+            Vertex(-1.0, -0.5, 0.0, 1.0, 1.0, 1.0),  # Bright white color
+            Vertex(-1.0,  0.5, 0.0, 1.0, 1.0, 1.0),  # Bright white color
+            Vertex( 1.0, -0.5, 0.0, 1.0, 1.0, 1.0),  # Bright white color
+            Vertex( 1.0,  0.5, 0.0, 1.0, 1.0, 1.0),  # Bright white color
         ]
+        texcoords = np.array(
+            [
+                [1.0, 0.0],
+                [0.0, 0.0],
+                [1.0, 1.0],
+                [0.0, 1.0],
+            ],
+            dtype=np.float32,
+        )
+
 
         coords = vertices_to_coords(vertices)
         colors = vertices_to_colors(vertices)
@@ -50,6 +60,16 @@ class Rectangle(Shape):
             stride=0,
             offset=None,
         )
+        if texture_file:
+            vao.add_vbo(
+                location=3,
+                data=texcoords,
+                ncomponents=texcoords.shape[1],
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
 
         self.shapes.extend(
             [Part(vao, GL.GL_TRIANGLE_STRIP, len(vertices))]

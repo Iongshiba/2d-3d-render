@@ -35,9 +35,12 @@ class ShapeConfig:
 
     sphere_radius: float = 2.0
     sphere_sectors: int = 40
-    # TODO handle any sphere_stacks
     sphere_stacks: int = 41
-    sphere_color: tuple[float, float, float] = (None, None, None)
+    # sphere_color: tuple[float, float, float] = (None, None, None)
+
+    heart_sector: int = 64
+    heart_stack: int = 32
+    heart_scale: float = 1.0
 
     circle_sector: int = 100
 

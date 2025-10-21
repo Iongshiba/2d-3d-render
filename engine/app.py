@@ -326,7 +326,6 @@ class SceneControlOverlay:
         else:
             selected_color = self._color_presets[self._color_index].rgb
             self._shape_config.base_color = selected_color
-            self._shape_config.sphere_color = selected_color
             root = build_shape_scene(option.value, self._shape_config)
             is_shape_2d = is_2d_shape(option.value)
             self.renderer.set_scene(root)
@@ -389,7 +388,6 @@ class SceneControlOverlay:
                 if clicked and idx != self._color_index:
                     self._color_index = idx
                     self._shape_config.base_color = preset.rgb
-                    self._shape_config.sphere_color = preset.rgb
                     if self._current_option and self._current_option.kind == "shape":
                         self._apply_selection(self._current_option)
                 if is_selected:

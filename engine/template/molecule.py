@@ -52,7 +52,7 @@ def _unit_vectors(count: int) -> Iterable[np.ndarray]:
 def _make_sphere(radius: float, color: Sequence[float]) -> GeometryNode:
     cfg = ShapeConfig()
     cfg.sphere_radius = radius
-    cfg.sphere_color = tuple(color)
+    cfg.base_color = tuple(color)
     sphere = ShapeFactory.create_shape(ShapeType.SPHERE, cfg)
     return GeometryNode("sphere", sphere)
 
