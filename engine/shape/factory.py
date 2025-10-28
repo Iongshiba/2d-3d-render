@@ -49,6 +49,15 @@ def _resolve_color(cfg: ShapeConfig) -> tuple[float | None, float | None, float 
 
 
 ShapeFactory.register_shape(
+    ShapeType.QUICK_DRAW,
+    lambda cfg: QuickDraw(
+        vertex_file=_SHAPE_VERTEX_PATH,
+        fragment_file=_SHAPE_FRAGMENT_PATH,
+        texture_file=cfg.texture_file,
+    ),
+)
+
+ShapeFactory.register_shape(
     ShapeType.TRIANGLE,
     lambda cfg: Triangle(
         color=_resolve_color(cfg),

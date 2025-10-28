@@ -49,7 +49,7 @@ class ShapeConfig:
     star_outer_radius: int = 2
     star_inner_radius: int = 1
 
-    cone_height: float = 1.0
+    cone_height: float = 1.0``
     cone_radius: float = 0.5
     cone_sectors: int = 20
 
@@ -63,9 +63,9 @@ class ShapeConfig:
     torus_horizontal_radius: float = 2.0
     torus_vertical_radius: float = 1
 
-    equation_expression: str = "x + y"
+    equation_expression: str = "(x^2 + y - 11)^2 + (x + y^2 - 7)^2"
     equation_mesh_size: int = 10
-    equation_mesh_density: int = 100
+    equation_mesh_density: int = 10
 
     texture_file: str = ""
 

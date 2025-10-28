@@ -32,6 +32,7 @@ class Equation(Shape):
         y_ = np.linspace(-mesh_size / 2, mesh_size / 2, mesh_density)
         X, Y = np.meshgrid(x_, y_, indexing="xy")
         Z = func(X, Y)
+        Z = Z / np.average(Z)
 
         vertices = [
             Vertex(x, y, z) for x, y, z in zip(X.flatten(), Y.flatten(), Z.flatten())
@@ -53,10 +54,14 @@ class Equation(Shape):
             # Remove redundant connection between odd-even strip
             # Only even-odd strip is allowed
             if i < mesh_density - 2:
+                last = (i + 1) * mesh_density + (mesh_density - 1)
+                next_first = (i + 1) * mesh_density
                 strips.extend(
                     [
-                        strips[-1],
-                        (i + 1) * mesh_density,
+                        last,
+                        last,
+                        next_first,
+                        next_first,
                     ]
                 )
             indices.extend(strips)

@@ -16,6 +16,7 @@ from .arrow import Arrow
 from .cone import Cone
 from .truncated_cone import TruncatedCone
 from .torus import Torus
+from .quickdraw import QuickDraw
 from .equation import Equation
 from .model import Model
 from .light_source import LightSource
@@ -39,6 +40,7 @@ __all__ = [
     "Cone",
     "TruncatedCone",
     "Torus",
+    "QuickDraw",
     "Equation",
     "Model",
     "LightSource",

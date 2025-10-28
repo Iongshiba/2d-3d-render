@@ -30,6 +30,7 @@ THREE_D_SHAPES: set[ShapeType] = {
     ShapeType.TETRAHEDRON,
     ShapeType.TORUS,
     ShapeType.MODEL,
+    ShapeType.QUICK_DRAW,
 }
 
 

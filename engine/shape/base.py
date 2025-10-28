@@ -135,7 +135,8 @@ class Shape:
 
     @staticmethod
     def _apply_color_override(
-        colors: np.ndarray, override: tuple[float | None, float | None, float | None] | None
+        colors: np.ndarray,
+        override: tuple[float | None, float | None, float | None] | None,
     ) -> np.ndarray:
         if not override:
             return colors

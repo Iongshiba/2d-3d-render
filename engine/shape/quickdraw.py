@@ -3,39 +3,38 @@ import numpy as np
 from OpenGL import GL
 
 from utils import *
-from graphics.vertex import Vertex
 from graphics.buffer import VAO
+from graphics.vertex import Vertex
 from shape.base import Shape, Part
 
 
-class Rectangle(Shape):
+# fmt: off
+class QuickDraw(Shape):
     def __init__(
         self,
         color=(None, None, None),
         vertex_file=None,
-        fragment_file=None, 
+        fragment_file=None,
         texture_file=None,
-    ) -> None:
+    ):
         super().__init__(vertex_file, fragment_file)
         if texture_file:
             self._create_texture(texture_file)
 
-        # fmt: off
-        vertices = [
-            Vertex(-1.0, -0.5, 0.0),
-            Vertex(-1.0,  0.5, 0.0),
-            Vertex( 1.0, -0.5, 0.0),
-            Vertex( 1.0,  0.5, 0.0),
-        ]
+        vertices = []
+        indices = []
+        norms = []
 
         coords = vertices_to_coords(vertices)
         colors = vertices_to_colors(vertices)
+        indices = np.array(indices, dtype=np.int32)
+        norms = np.array(norms, dtype=np.float32)
 
         vao = VAO()
         vao.add_vbo(
             location=0,
             data=coords,
-            ncomponents=coords.shape[1],
+            ncomponents=3,
             dtype=GL.GL_FLOAT,
             normalized=False,
             stride=0,
@@ -44,13 +43,32 @@ class Rectangle(Shape):
         vao.add_vbo(
             location=1,
             data=colors,
-            ncomponents=colors.shape[1],
+            ncomponents=3,
             dtype=GL.GL_FLOAT,
             normalized=False,
             stride=0,
             offset=None,
         )
+        vao.add_vbo(
+            location=2,
+            data=norms,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_ebo(
+            indices,
+        )
 
         self.shapes.extend(
-            [Part(vao, GL.GL_TRIANGLE_STRIP, len(vertices))]
+            [
+                Part(
+                    vao,
+                    GL.GL_TRIANGLE_STRIP,
+                    colors.shape[0],
+                    indices.shape[0],
+                ),
+            ]
         )

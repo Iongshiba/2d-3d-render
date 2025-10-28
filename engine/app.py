@@ -296,7 +296,7 @@ class SceneControlOverlay:
         shape_options_3d: List[MenuOption] = []
 
         for name in sorted(self._scene_controller.listscenes()):
-            label = f"Template • {self._format_name(name)}"
+            label = f"{self._format_name(name)}"
             template_options.append(
                 MenuOption(label=label, kind="template", value=name)
             )

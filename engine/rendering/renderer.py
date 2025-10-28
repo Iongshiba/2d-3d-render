@@ -24,7 +24,7 @@ class Renderer:
             GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_FRONT)
         GL.glFrontFace(GL.GL_CCW)
-        GL.glClearColor(0.07, 0.07, 0.07, 1.0)
+        GL.glClearColor(0.2, 0.2, 0.2, 1.0)
 
         self.use_trackball = False
         self.use_wireframe = False
