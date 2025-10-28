@@ -80,7 +80,6 @@ def build() -> Node:
         scene.add(ring)
         scene.add(electron)
 
-    shape_cfg.sphere_color = (1.0, 1.0, 1.0)
     light = ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, shape_cfg)
     scene.add(
         TransformNode(

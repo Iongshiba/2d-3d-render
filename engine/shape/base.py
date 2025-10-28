@@ -71,7 +71,7 @@ class Shape:
         GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
         GL.glUniformMatrix4fv(self.camera_loc, 1, GL.GL_TRUE, self.identity)
         GL.glUniformMatrix4fv(self.project_loc, 1, GL.GL_TRUE, self.identity)
-        GL.glUniform1i(self.use_texture_loc, False)
+        GL.glUniform1i(self.use_texture_loc, True)
         GL.glUniform1i(self.texture_data_loc, 0)
         if self.shading_mode_loc != -1:
             GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
@@ -79,6 +79,8 @@ class Shape:
 
     def draw(self):
         self.shader_program.activate()
+        # Set use_texture based on whether texture exists
+        GL.glUniform1i(self.use_texture_loc, 1 if self.texture else 0)
         for shape in self.shapes:
             vao = shape.vao
             vao.activate()

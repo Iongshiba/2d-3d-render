@@ -12,6 +12,7 @@ from .ring import Ring
 from .ellipse import Ellipse
 from .trapezoid import Trapezoid
 from .star import Star
+from .heart import Heart
 from .arrow import Arrow
 from .cone import Cone
 from .truncated_cone import TruncatedCone
@@ -36,6 +37,7 @@ __all__ = [
     "Ellipse",
     "Trapezoid",
     "Star",
+    "Heart",
     "Arrow",
     "Cone",
     "TruncatedCone",

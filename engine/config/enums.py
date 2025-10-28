@@ -25,6 +25,7 @@ class ShapeType(Enum):
     ARROW = auto()
     CUBE = auto()
     SPHERE = auto()
+    HEART = auto()
     CYLINDER = auto()
     CONE = auto()              
     TRUNCATED_CONE = auto()    
