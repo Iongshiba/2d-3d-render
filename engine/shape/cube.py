@@ -41,8 +41,6 @@ class Cube(Shape):
         top_norms = np.array([0.0, 1.0, 0.0], dtype=np.float32)
         bottom_norms = np.array([0.0, -1.0, 0.0], dtype=np.float32)
 
-        print(np.mean([left_norms, back_norms, top_norms]),)
-
         norms = np.array([
             np.mean([left_norms, back_norms, top_norms], axis=0),
             np.mean([right_norms, back_norms, top_norms], axis=0),

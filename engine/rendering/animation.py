@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Callable
+from typing import Callable, Iterable
 
 from rendering.world import Rotate, Scale, Translate
 

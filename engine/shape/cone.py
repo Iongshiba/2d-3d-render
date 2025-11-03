@@ -65,7 +65,6 @@ class Cone(Shape):
             [1] + list(range(2, len(vertices))),
             dtype=np.int32,
         )
-        # print(len(top_indices), len(bottom_indices), len(top_norms), len(bottom_norms))
 
         top_vao = VAO()
         top_vao.add_vbo(
