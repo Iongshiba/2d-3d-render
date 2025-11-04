@@ -15,6 +15,16 @@ def make_numpy_func(expr, vars=("x", "y")):
     return f
 
 
+def make_numpy_deri(expr, vars=("x", "y")):
+    symbols = sp.symbols(vars)
+    sym_expr = sp.sympify(expr)
+    dx = sp.diff(sym_expr, symbols[0])
+    dy = sp.diff(sym_expr, symbols[1])
+    fdx = sp.lambdify(symbols, dx, modules=["numpy"])
+    fdy = sp.lambdify(symbols, dy, modules=["numpy"])
+    return fdx, fdy
+
+
 def load_texture(path):
     img = Image.open(path).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
     img_data = img.tobytes()

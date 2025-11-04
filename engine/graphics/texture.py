@@ -46,3 +46,16 @@ class Texture2D:
 
     def deactivate(self):
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+    def cleanup(self):
+        """Delete the texture to free GPU resources."""
+        try:
+            if self.tex is not None:
+                GL.glDeleteTextures([self.tex])
+                self.tex = None
+        except (GL.error.GLError, AttributeError, TypeError):
+            pass
+
+    def __del__(self):
+        """Cleanup on object destruction."""
+        self.cleanup()

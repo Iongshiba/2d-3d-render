@@ -147,3 +147,29 @@ class Renderer:
         elif not enabled and self.cull_face_enabled:
             GL.glDisable(GL.GL_CULL_FACE)
         self.cull_face_enabled = enabled
+
+    def cleanup(self):
+        """Cleanup all OpenGL resources."""
+        try:
+            # Cleanup all shapes in the scene
+            if self.root:
+                self._cleanup_node(self.root)
+
+            # Clear node lists
+            self.shape_nodes.clear()
+            self.light_nodes.clear()
+            self.transform_nodes.clear()
+            self.root = None
+        except Exception:
+            pass  # Silently ignore cleanup errors
+
+    def _cleanup_node(self, node):
+        """Recursively cleanup all nodes in the scene tree."""
+        try:
+            if hasattr(node, "shape") and node.shape and hasattr(node.shape, "cleanup"):
+                node.shape.cleanup()
+
+            for child in node.children:
+                self._cleanup_node(child)
+        except Exception:
+            pass

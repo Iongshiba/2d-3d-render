@@ -58,3 +58,16 @@ class ShaderProgram:
 
     def deactivate(self):
         GL.glUseProgram(0)
+
+    def cleanup(self):
+        """Delete the shader program to free GPU resources."""
+        try:
+            if self.program is not None:
+                GL.glDeleteProgram(self.program)
+                self.program = None
+        except (GL.error.GLError, AttributeError, TypeError):
+            pass
+
+    def __del__(self):
+        """Cleanup on object destruction."""
+        self.cleanup()

@@ -46,13 +46,31 @@ class VAO:
         # Deactivate VAO first so unbinding the EBO (if desired) won't clear the VAO's EBO binding
         self.deactivate()
 
+    def cleanup(self):
+        """Explicitly delete OpenGL resources."""
+        try:
+            # Check if OpenGL context is still valid before cleanup
+            # This prevents errors during application shutdown
+            if self.vao is not None:
+                GL.glDeleteVertexArrays(1, [self.vao])
+                self.vao = None
+            
+            vbos = list(self.vbos.values())
+            if vbos:
+                GL.glDeleteBuffers(len(vbos), vbos)
+                self.vbos.clear()
+            
+            if self.ebo is not None:
+                GL.glDeleteBuffers(1, [self.ebo])
+                self.ebo = None
+        except (GL.error.GLError, AttributeError, TypeError):
+            # Silently ignore errors during cleanup
+            # This can happen if OpenGL context is already destroyed
+            pass
+
     def __del__(self):
-        GL.glDeleteVertexArrays(1, [self.vao])
-        vbos = list(self.vbos.values())
-        if vbos:
-            GL.glDeleteBuffers(len(vbos), vbos)
-        if self.ebo is not None:
-            GL.glDeleteBuffers(1, [self.ebo.ebo])
+        """Cleanup on object destruction."""
+        self.cleanup()
 
     def activate(self):
         GL.glBindVertexArray(self.vao)  # activated

@@ -1,11 +1,53 @@
 from __future__ import annotations
 
 import math
-from typing import Callable, Iterable
-
-from rendering.world import Rotate, Scale, Translate
+import numpy as np
+import sympy as sp
+from typing import Callable, Iterable, Any
+from utils import *
+from rendering.world import Rotate, Scale, Translate, Composite
+from shape import Equation
 
 AnimationFn = Callable[[object, float], None]
+
+
+def gradient_descent(
+    equation: Equation,
+    ball_radius: float,
+    optimizer: str = "SGD",
+    learning_rate: float = 0.001,
+    momentum: float = 0.9,
+    min_gradient: float = 0.1,
+):
+    dx, dy = make_numpy_deri(equation.expression)
+    func = make_numpy_func(equation.expression)
+
+    def update(transform: Translate, dt: float) -> None:
+        x = transform.x
+        y = transform.y
+
+        x_grad = dx(x, y)
+        y_grad = dy(x, y)
+        gradient = np.array([x_grad, y_grad], dtype=np.float32)
+        max_grad_norm = 0.03
+        grad_norm = np.linalg.norm(gradient)
+        if grad_norm > max_grad_norm:
+            gradient = gradient * (max_grad_norm / grad_norm)
+
+        if optimizer == "SGD":
+            displacement = -learning_rate * dt * gradient
+
+        x = transform.x + displacement[0] - gradient[0] * ball_radius
+        y = transform.y + displacement[1] - gradient[1] * ball_radius
+        z = (func(x, y) - equation.Z_min) / (
+            equation.Z_max - equation.Z_min
+        ) * 10 + ball_radius
+
+        transform.x = x
+        transform.y = y
+        transform.z = z
+
+    return update
 
 
 def infinite_spin(speed: float = 1.0) -> AnimationFn:
@@ -79,6 +121,7 @@ def pulse_scale(
 
 __all__ = [
     "AnimationFn",
+    "gradient_descent",
     "infinite_spin",
     "circular_orbit",
     "ping_pong_translation",

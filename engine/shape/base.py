@@ -156,3 +156,21 @@ class Shape:
             height,
         )
         GL.glActiveTexture(GL.GL_TEXTURE0)
+
+    def cleanup(self):
+        """Cleanup OpenGL resources used by this shape."""
+        try:
+            # Clean up all VAOs
+            for part in self.shapes:
+                if hasattr(part.vao, "cleanup"):
+                    part.vao.cleanup()
+
+            # Clean up texture if exists
+            if self.texture and hasattr(self.texture, "cleanup"):
+                self.texture.cleanup()
+
+            # Clean up shader program
+            if hasattr(self.shader_program, "cleanup"):
+                self.shader_program.cleanup()
+        except Exception:
+            pass  # Silently ignore cleanup errors

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import sys
 from dataclasses import dataclass
 from typing import List, Sequence
@@ -20,6 +21,12 @@ from template.shape_gallery import build_shape_scene, is_2d_shape
 
 class App:
     def __init__(self, width, height, use_trackball):
+        # Ensure GLFW is properly terminated before initializing
+        try:
+            glfw.terminate()
+        except Exception:
+            pass
+
         if not glfw.init():
             raise RuntimeError("GLFW failed to initialize")
 
@@ -191,10 +198,32 @@ class App:
 
             glfw.swap_buffers(self.window)
 
-        if self.ui:
-            self.ui.shutdown()
+        # Cleanup before terminating
+        self.cleanup()
 
-        glfw.terminate()
+    def cleanup(self):
+        """Cleanup all resources before terminating."""
+        try:
+            # Cleanup renderer resources
+            if self.renderer and hasattr(self.renderer, "cleanup"):
+                self.renderer.cleanup()
+
+            # Cleanup UI
+            if self.ui:
+                self.ui.shutdown()
+
+            # Terminate GLFW
+            if self.window:
+                glfw.destroy_window(self.window)
+                self.window = None
+
+            glfw.terminate()
+        except Exception as e:
+            # If cleanup fails, at least try to terminate GLFW
+            try:
+                glfw.terminate()
+            except Exception:
+                pass
 
     def _update_camera(self, delta_time: float) -> None:
         if delta_time <= 0.0:

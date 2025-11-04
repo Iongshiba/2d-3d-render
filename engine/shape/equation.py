@@ -59,7 +59,7 @@ class Equation(Shape):
         norms_[:, 0] = dZ_dx.flatten()
         norms_[:, 1] = dZ_dy.flatten()
         norms_[:, 2] = 1
-        norms = np.concat([norms, norms_])
+        # norms = np.concat([norms, norms_])
         norms = norms / np.linalg.norm(norms, axis=1, keepdims=True)
 
         # Create pastel heatmap colors: blue (low) -> cyan -> green -> yellow -> red (high)
@@ -132,8 +132,8 @@ class Equation(Shape):
             indices.extend(strips)
             indices_.extend(strips_)
 
-        indices.extend([indices[-1], indices_[0]])
-        indices.extend(indices_)
+        # indices.extend([indices[-1], indices_[0]])
+        # indices.extend(indices_)
         indices = np.array(indices, dtype=np.int32)
         # print(indices.shape)
         # print(norms.shape)
@@ -176,9 +176,6 @@ class Equation(Shape):
         self.normals = norms[: (mesh_density * mesh_density)].reshape(
             (mesh_density, mesh_density, 3)
         )
-
-    def get_surface(self):
-        return self.surface
-
-    def get_normals(self):
-        return self.normals
+        self.func = func
+        self.Z_max = Z_max
+        self.Z_min = Z_min

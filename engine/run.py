@@ -1,4 +1,5 @@
 import os
+import gc
 import sys
 
 if sys.platform.startswith("linux"):
@@ -35,7 +36,21 @@ def main() -> None:
 
     app.add_renderer(renderer)
     app.add_ui(overlay)
-    app.run()
+
+    try:
+        app.run()
+    finally:
+        # Ensure cleanup happens even if there's an exception
+        if hasattr(app, "cleanup"):
+            try:
+                app.cleanup()
+            except Exception:
+                pass
+
+        # Force garbage collection
+        gc.collect()
+
+    print("exit")
 
 
 if __name__ == "__main__":
