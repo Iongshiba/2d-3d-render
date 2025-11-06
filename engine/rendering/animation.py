@@ -13,20 +13,27 @@ AnimationFn = Callable[[object, float], None]
 
 def gradient_descent(
     equation: Equation,
+    start_pos: Iterable[float, float, float],
     ball_radius: float,
     optimizer: str = "SGD",
     learning_rate: float = 10.0,
-    momentum: float = 0.9,
-    min_gradient: float = 0.1,
+    momentum: float = 1.0,
+    epsilon: float = 1e-4,
+    decay_rate: float = 0.99,
+    beta1: float = 0.999999,  # first moment
+    beta2: float = 0.999,  # second moment
+    min_gradient: float = 0.001,
     max_gradient: float = 0.03,
 ):
     dx, dy = make_numpy_deri(equation.expression)
     func = make_numpy_func(equation.expression)
+    x, y, z = start_pos
+    velocity = 0
+    accumulated_grad = 0
+    time_step = 0
 
     def update(transform: Composite, dt: float) -> None:
-        nonlocal max_gradient
-        nonlocal min_gradient
-        nonlocal momentum
+        nonlocal x, y, z, velocity, accumulated_grad, time_step
 
         if isinstance(transform[0], Translate):
             translate = transform[0]
@@ -35,46 +42,73 @@ def gradient_descent(
             translate = transform[1]
             rotate = transform[0]
 
-        # translate
-        x = translate.x
-        y = translate.y
-
         x_grad = dx(x, y)
         y_grad = dy(x, y)
         xy_grad = np.array([x_grad, y_grad], dtype=np.float32)
         xy_grad_norm = np.linalg.norm(xy_grad)
 
         # gradient clipping
-        max_gradient = 0.03
         if xy_grad_norm > max_gradient:
             xy_grad = xy_grad * (max_gradient / xy_grad_norm)
             xy_grad_norm = max_gradient
 
-        if optimizer == "SGD":
-            displacement = -learning_rate * dt * xy_grad
+        # fmt: off
+        if optimizer == "momentum":
+            velocity = momentum * velocity + learning_rate * xy_grad * dt
+            displacement = -velocity
+
+        elif optimizer == "adagrad":
+            accumulated_grad += xy_grad**2
+            adapted_learning_rate = learning_rate / (np.sqrt(accumulated_grad) + epsilon)
+            displacement = -adapted_learning_rate * xy_grad * dt
+
+        elif optimizer == "rmsdrop":
+            accumulated_grad = decay_rate * accumulated_grad + (1 - decay_rate) * xy_grad**2
+            adapted_learning_rate = learning_rate / (np.sqrt(accumulated_grad) + epsilon)
+            displacement = -adapted_learning_rate * xy_grad * dt
+        elif optimizer == "adam":
+            time_step += 1
+            velocity = beta1 * velocity + (1 - beta1) * xy_grad
+            accumulated_grad = beta2 * accumulated_grad + (1 - beta2) * xy_grad**2
+            
+            # bias correction
+            velocity_corrected = velocity / (1 - beta1**time_step)
+            accumulated_grad_corrected = accumulated_grad / (1 - beta2**time_step)
+            
+            displacement = -learning_rate * velocity_corrected / (np.sqrt(accumulated_grad_corrected) + epsilon) * dt
+
+        else:
+            displacement -= learning_rate * xy_grad * dt
+        # fmt: on
+        print(displacement)
 
         # Calculate new position
-        new_x = translate.x + displacement[0]
-        new_y = translate.y + displacement[1]
-        new_z = (func(new_x, new_y) - equation.Z_min) / (
-            equation.Z_max - equation.Z_min
-        ) * 10 + ball_radius
+        new_x = x + displacement[0]
+        new_y = y + displacement[1]
+        new_z = (
+            (func(new_x, new_y) - equation.Z_min)
+            / (equation.Z_max - equation.Z_min)
+            * 10
+        )
 
         # Calculate movement vector
-        move_direction = np.array(
-            [new_x - translate.x, new_y - translate.y, new_z - translate.z]
-        )
+        move_direction = np.array([new_x - x, new_y - y, new_z - z])
         move_distance = np.linalg.norm(move_direction)
 
-        # Update position
-        # translate.x = new_x
-        # translate.y = new_y
-        # translate.z = new_z
-
-        # Rotate (only when gradient is significant and ball is moving)
+        # Roll (only when gradient is significant and ball is moving)
         if xy_grad_norm > min_gradient * 0.01 and move_distance > 1e-6:
+            # Update position
+            z_scale = 10.0 / (equation.Z_max - equation.Z_min)
+            grad = np.array(
+                [-x_grad * z_scale, -y_grad * z_scale, 1.0], dtype=np.float32
+            )
+            grad = grad / np.linalg.norm(grad)
+            translate.x = new_x + ball_radius * grad[0]
+            translate.y = new_y + ball_radius * grad[1]
+            translate.z = new_z + ball_radius * grad[2]
+
             # For rolling motion, rotation axis is perpendicular to movement in XY plane
-            move_direction_2d = np.array([move_direction[0], move_direction[1], 0.0])
+            move_direction_2d = np.array([move_direction[0], move_direction[1]])
             move_dist_2d = np.linalg.norm(move_direction_2d)
 
             if move_dist_2d > 1e-6:
@@ -94,6 +128,11 @@ def gradient_descent(
                     # Accumulate rotation
                     rotate.axis = tuple(rotation_axis)
                     rotate.angle -= rotation_angle_degrees
+
+            # Update gradient
+            x = new_x
+            y = new_y
+            z = new_z
 
     return update
 

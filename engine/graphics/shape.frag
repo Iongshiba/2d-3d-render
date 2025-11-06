@@ -2,7 +2,7 @@
 
 out vec4 color;
 
-in vec3 vertexColor;
+in vec3 vertexColor; // this turn into position for fragment, not vertex anymore
 in vec3 vertexNorm;
 in vec3 vertexCoord;
 in vec2 textureCoord;

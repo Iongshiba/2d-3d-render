@@ -21,6 +21,7 @@ def build_gradient_descent():
 
     equation_cfg = ShapeConfig()
     equation_cfg.equation_expression = equation_str
+    equation_cfg.equation_mesh_size = 10
     # Set to a uniform color to see Phong shading clearly
     equation_cfg.base_color = (0.8, 0.8, 0.9)  # Light blue-gray
     equation_shape = ShapeFactory.create_shape(ShapeType.EQUATION, equation_cfg)
@@ -47,7 +48,12 @@ def build_gradient_descent():
     ball_initial_location = pos + ball_radius * norm
 
     # Create gradient descent animation
-    gd_animation = gradient_descent(equation=equation_shape, ball_radius=ball_radius)
+    gd_animation = gradient_descent(
+        equation=equation_shape,
+        start_pos=ball_initial_location,
+        ball_radius=ball_radius,
+        optimizer="adam",
+    )
 
     ball_cfg = ShapeConfig()
     ball_cfg.sphere_radius = ball_radius
