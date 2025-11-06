@@ -12,6 +12,7 @@ from .enums import (
     ShadingModel,
     TextureMode,
     RenderMode,
+    GradientMode,
 )
 
 
@@ -80,6 +81,11 @@ class ShapeConfig:
         207,
         196,
     )
+
+    # Gradient configuration
+    gradient_mode: GradientMode = None
+    gradient_start_color: tuple[float, float, float] = (1.0, 0.0, 0.0)  # Red
+    gradient_end_color: tuple[float, float, float] = (0.0, 0.0, 1.0)  # Blue
 
 
 @dataclass(slots=True)
@@ -155,4 +161,5 @@ __all__ = [
     "ShadingModel",
     "TextureMode",
     "RenderMode",
+    "GradientMode",
 ]

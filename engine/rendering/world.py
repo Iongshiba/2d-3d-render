@@ -34,6 +34,9 @@ class Composite(Transform):
         for transform in self.transforms:
             transform.update_matrix(dt)
 
+    def __getitem__(self, idx):
+        return self.transforms[idx]
+
 
 class Translate(Transform):
     def __init__(self, x=0.0, y=0.0, z=0.0, animate=None):

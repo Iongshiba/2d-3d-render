@@ -12,6 +12,7 @@ from imgui.integrations.glfw import GlfwRenderer  # type: ignore
 from OpenGL import GL
 
 from config import ShapeConfig, ShapeType, ShadingModel
+from config import GradientMode
 from config.palette import COLOR_PRESETS, ColorPreset
 from rendering.camera import CameraMovement
 from shape.factory import ShapeFactory
@@ -288,6 +289,17 @@ class SceneControlOverlay:
         }
         self.renderer.set_shading_model(self.shading_model)
 
+        # Gradient settings
+        self._gradient_labels: dict[GradientMode, str] = {
+            GradientMode.NONE: "None",
+            GradientMode.LINEAR_X: "Linear X",
+            GradientMode.LINEAR_Y: "Linear Y",
+            GradientMode.LINEAR_Z: "Linear Z",
+            GradientMode.RADIAL: "Radial",
+            GradientMode.DIAGONAL: "Diagonal",
+            GradientMode.RAINBOW: "Rainbow",
+        }
+
         # Activate first available option so the renderer has a scene before the main loop.
         initial_option = (
             self._template_options[:1]
@@ -417,6 +429,23 @@ class SceneControlOverlay:
                 if clicked and idx != self._color_index:
                     self._color_index = idx
                     self._shape_config.base_color = preset.rgb
+                    if self._current_option and self._current_option.kind == "shape":
+                        self._apply_selection(self._current_option)
+                if is_selected:
+                    self._imgui.set_item_default_focus()
+            self._imgui.end_combo()
+
+        # Gradient Mode selection
+        current_gradient = self._shape_config.gradient_mode or GradientMode.NONE
+        gradient_label = self._gradient_labels[current_gradient]
+        if self._imgui.begin_combo("Gradient", gradient_label):
+            for mode, label in self._gradient_labels.items():
+                is_selected = mode is current_gradient
+                clicked, _ = self._imgui.selectable(label, is_selected)
+                if clicked and mode is not current_gradient:
+                    self._shape_config.gradient_mode = (
+                        mode if mode != GradientMode.NONE else None
+                    )
                     if self._current_option and self._current_option.kind == "shape":
                         self._apply_selection(self._current_option)
                 if is_selected:

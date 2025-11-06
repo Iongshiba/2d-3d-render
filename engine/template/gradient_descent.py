@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from config import ShapeConfig, ShapeType
+from config import ShapeConfig, ShapeType, GradientMode
 from graphics.scene import Node, TransformNode, GeometryNode, LightNode
 from rendering.world import Rotate, Translate, Composite
 from rendering.animation import gradient_descent
@@ -52,11 +52,14 @@ def build_gradient_descent():
     ball_cfg = ShapeConfig()
     ball_cfg.sphere_radius = ball_radius
     ball_cfg.base_color = ball_color
+    ball_cfg.gradient_end_color = (0.73, 0.25, 0.23)
+    ball_cfg.gradient_start_color = (0.25, 0.25, 0.97)
+    ball_cfg.gradient_mode = GradientMode.LINEAR_X
     ball_shape = ShapeFactory.create_shape(ShapeType.SPHERE, ball_cfg)
     ball_node = GeometryNode("ball", ball_shape)
     ball_spawn = TransformNode(
         "ball_transform",
-        Translate(*ball_initial_location, animate=gd_animation),
+        Composite([Translate(*ball_initial_location), Rotate()], animate=gd_animation),
         [ball_node],
     )
     root.add(ball_spawn)

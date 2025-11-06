@@ -55,3 +55,13 @@ class TextureMode(Enum):
 class RenderMode(Enum):
     FILL = 0
     WIREFRAME = 1
+
+
+class GradientMode(Enum):
+    NONE = 0
+    LINEAR_X = 1  # Gradient along X axis
+    LINEAR_Y = 2  # Gradient along Y axis
+    LINEAR_Z = 3  # Gradient along Z axis
+    RADIAL = 4  # Gradient from center
+    DIAGONAL = 5  # Gradient along diagonal
+    RAINBOW = 6  # Rainbow gradient

@@ -16,6 +16,9 @@ class Cube(Shape):
         vertex_file=None,
         fragment_file=None,
         texture_file=None,
+        gradient_mode=None,
+        gradient_start=(1.0, 0.0, 0.0),
+        gradient_end=(0.0, 0.0, 1.0),
     ) -> None:
         super().__init__(vertex_file, fragment_file)
         if texture_file:
@@ -53,7 +56,13 @@ class Cube(Shape):
         ], dtype=np.float32)
         
         coords = vertices_to_coords(vertices)
-        colors = vertices_to_colors(vertices)
+        
+        # Apply gradient colors if gradient_mode is specified
+        if gradient_mode:
+            from utils import generate_gradient_colors
+            colors = generate_gradient_colors(vertices, gradient_mode, gradient_start, gradient_end)
+        else:
+            colors = vertices_to_colors(vertices)
 
         indices = np.array([
             # back with normal go out

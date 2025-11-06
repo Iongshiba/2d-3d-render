@@ -18,19 +18,7 @@ class ShapeFactory:
     @classmethod
     def create_shape(cls, shape_type: ShapeType, config: ShapeConfig) -> Shape:
         builder = cls._registry.get(shape_type)
-        if builder is None:
-            raise ValueError(f"Unknown shape type: {shape_type!r}")
-        previous_color = Vertex.get_global_color()
-        color_override = (
-            _resolve_color(config)
-            if shape_type is not ShapeType.LIGHT_SOURCE
-            else (None, None, None)
-        )
-        Vertex.set_global_color(color_override)
-        try:
-            return builder(config)
-        finally:
-            Vertex.set_global_color(previous_color)
+        return builder(config)
 
     @classmethod
     def register_shape(cls, shape_type: ShapeType, builder: FactoryCallback) -> None:
@@ -46,6 +34,15 @@ def _resolve_color(cfg: ShapeConfig) -> tuple[float | None, float | None, float 
     if color is None:
         return (None, None, None)
     return color
+
+
+def _get_gradient_params(cfg: ShapeConfig):
+    """Extract gradient parameters from config."""
+    return {
+        "gradient_mode": cfg.gradient_mode,
+        "gradient_start": cfg.gradient_start_color,
+        "gradient_end": cfg.gradient_end_color,
+    }
 
 
 ShapeFactory.register_shape(
@@ -171,6 +168,7 @@ ShapeFactory.register_shape(
         vertex_file=_SHAPE_VERTEX_PATH,
         fragment_file=_SHAPE_FRAGMENT_PATH,
         texture_file=cfg.texture_file,
+        **_get_gradient_params(cfg),
     ),
 )
 
@@ -224,6 +222,7 @@ ShapeFactory.register_shape(
         vertex_file=_SHAPE_VERTEX_PATH,
         fragment_file=_SHAPE_FRAGMENT_PATH,
         texture_file=cfg.texture_file,
+        **_get_gradient_params(cfg),
     ),
 )
 
