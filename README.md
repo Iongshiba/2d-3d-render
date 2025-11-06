@@ -20,46 +20,39 @@ python3.11 --version
 ### 2. Install Dependencies
 
 ```bash
-pip install numpy PyOpenGL glfw imgui Pillow
-```
-
-Or install all at once:
-
-```bash
 pip install numpy PyOpenGL glfw imgui[glfw] Pillow
 ```
 
 ### 3. Run the Application
 
-Navigate to the `engine` directory and run:
+Run the `run.py` script:
 
 ```bash
-cd engine
 python run.py
 ```
 
 ## Controls
 
-- **W/A/S/D** - Move camera
+- **W/A/S/D** - Move camera (needs to modify the code a bit)
 - **Mouse drag (left button)** - Rotate view
 - **Mouse drag (right button)** - Pan view
 - **Mouse scroll** - Zoom in/out
-- **F** - Toggle wireframe mode
+- **W** - Toggle wireframe mode
 - **Q / ESC** - Quit application
 
 ## Features
 
 - 20+ 3D shapes (sphere, cube, cylinder, cone, torus, heart, etc.)
 - 2D shapes (triangle, rectangle, pentagon, hexagon, circle, etc.)
-- Texture mapping support
 - Phong shading and normal visualization
 - Pre-built molecular structures (atoms, molecules, water, CO₂)
+- Gradient descent visualizer (adam, adagrad, rmsdrop)
 - Custom scene builder with orbiting objects
 
 ## Project Structure
 
 ```
-engine/
+root/
 ├── run.py              # Main entry point
 ├── app.py              # Application window and UI
 ├── config/             # Configuration and enums
