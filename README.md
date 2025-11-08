@@ -2,6 +2,8 @@
 
 A Python-based OpenGL rendering engine for 2D and 3D shapes with molecular visualization support.
 
+![](https://github.com/Iongshiba/2d-3d-render/blob/4e4a5649a3dc5ce15eaecc13a67afb31ca24bef8/demo/view.gif)
+
 ## Requirements
 
 - Python 3.11
