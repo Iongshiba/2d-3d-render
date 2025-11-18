@@ -32,7 +32,7 @@ class ShapeConfig:
 
     cylinder_height: float = 1.0
     cylinder_radius: float = 0.5
-    cylinder_sectors: int = 20
+    cylinder_sectors: int = 3
 
     sphere_radius: float = 2.0
     sphere_sectors: int = 40

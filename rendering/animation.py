@@ -16,11 +16,11 @@ def gradient_descent(
     start_pos: Iterable[float, float, float],
     ball_radius: float,
     optimizer: str = "SGD",
-    learning_rate: float = 10.0,
+    learning_rate: float = 5.0,
     momentum: float = 1.0,
     epsilon: float = 1e-4,
     decay_rate: float = 0.99,
-    beta1: float = 0.999999,  # first moment
+    beta1: float = 0.99,  # first moment
     beta2: float = 0.999,  # second moment
     min_gradient: float = 0.001,
     max_gradient: float = 0.03,
