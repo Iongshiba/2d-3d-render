@@ -21,7 +21,16 @@ class QuickDraw(Shape):
         if texture_file:
             self._create_texture(texture_file)
 
-        vertices = []
+        vertices = [
+            Vertex(0, -1, 0),   # 0 bottom center Ob
+            Vertex(1, -1, 0),   # 1 A
+            Vertex(-1, -1, 1),  # 2 B
+            Vertex(-1, -1, -1), # 3 C
+            Vertex(0, 1, 0),    # 4 top center Ot
+            Vertex(1, 1, 0),    # 1 D
+            Vertex(-1, 1, 0),   # 2 E
+            Vertex(-1, 1, -1),  # 3 F
+        ]
         indices = []
         norms = []
 
