@@ -19,6 +19,9 @@ class Cylinder(Shape):
         vertex_file=None,
         fragment_file=None,
         texture_file=None,
+        gradient_mode=None,
+        gradient_start=(1.0, 0.0, 0.0),
+        gradient_end=(0.0, 0.0, 1.0),
     ) -> None:
         super().__init__(vertex_file, fragment_file)
         if texture_file:

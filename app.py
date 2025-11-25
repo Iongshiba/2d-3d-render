@@ -429,6 +429,7 @@ class SceneControlOverlay:
                 if clicked and idx != self._color_index:
                     self._color_index = idx
                     self._shape_config.base_color = preset.rgb
+                    self._shape_config.gradient_mode = None
                     if self._current_option and self._current_option.kind == "shape":
                         self._apply_selection(self._current_option)
                 if is_selected:
@@ -446,6 +447,7 @@ class SceneControlOverlay:
                     self._shape_config.gradient_mode = (
                         mode if mode != GradientMode.NONE else None
                     )
+                    self._color_index = -1
                     if self._current_option and self._current_option.kind == "shape":
                         self._apply_selection(self._current_option)
                 if is_selected:
