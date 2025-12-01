@@ -37,7 +37,7 @@ class Ellipse(Shape):
         )
 
         coords = vertices_to_coords(vertices)
-        colors = vertices_to_colors(vertices)
+        colors = self._apply_color_override(vertices_to_colors(vertices), color)
 
         vao = VAO()
         vao.add_vbo(

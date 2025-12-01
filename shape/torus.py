@@ -66,7 +66,7 @@ class Torus(Shape):
                     )
 
         side_coords = vertices_to_coords(sides)
-        side_colors = vertices_to_colors(sides)
+        side_colors = self._apply_color_override(vertices_to_colors(sides), color)
         indices = np.array(indices, dtype=np.int32)
         norms = np.array(norms, dtype=np.float32)
 

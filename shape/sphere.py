@@ -85,12 +85,13 @@ class Sphere(Shape):
         side_coords = vertices_to_coords(sides)
         
         # Apply gradient colors if gradient_mode is specified
-        if gradient_mode:
-            from utils import generate_gradient_colors
-            side_colors = generate_gradient_colors(sides, gradient_mode, gradient_start, gradient_end)
-        else:
-            side_colors = vertices_to_colors(sides)
-        
+        # if gradient_mode:
+        #     from utils import generate_gradient_colors
+        #     side_colors = generate_gradient_colors(sides, gradient_mode, gradient_start, gradient_end)
+        # else:
+        #     side_colors = vertices_to_colors(sides)
+        side_colors = self._apply_color_override(vertices_to_colors(sides), color)
+
         indices = np.array(indices, dtype=np.int32)
         norms = np.copy(side_coords)
         # side_texcoords = np.array(texcoords, dtype=np.float32)

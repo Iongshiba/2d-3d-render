@@ -45,6 +45,7 @@ class ColorMode(Enum):
 class ShadingModel(Enum):
     NORMAL = 0
     PHONG = 1
+    GOURAUD = 2
 
 
 class TextureMode(Enum):

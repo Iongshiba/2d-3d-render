@@ -4,7 +4,13 @@ from pathlib import Path
 from OpenGL import GL
 
 from utils import *
-from config import _SHAPE_FRAGMENT_PATH, _SHAPE_VERTEX_PATH, ShadingModel
+from config import (
+    _SHAPE_FRAGMENT_PATH,
+    _SHAPE_VERTEX_PATH,
+    _GOURAUD_VERTEX_PATH,
+    _GOURAUD_FRAGMENT_PATH,
+    ShadingModel,
+)
 from graphics.buffer import VAO
 from graphics.shader import Shader, ShaderProgram
 from graphics.texture import Texture2D
@@ -62,9 +68,11 @@ class Shape:
         self.project_loc = GL.glGetUniformLocation(self.shader_program.program, "project")
         self.use_texture_loc = GL.glGetUniformLocation(self.shader_program.program, "use_texture")
         self.texture_data_loc = GL.glGetUniformLocation(self.shader_program.program, "textureData")
-        self.light_color_loc = GL.glGetUniformLocation(self.shader_program.program, "lightColor")
+        # Phong (eye-space) uniforms
+        self.I_lights_loc = GL.glGetUniformLocation(self.shader_program.program, "I_lights")
+        self.K_materials_loc = GL.glGetUniformLocation(self.shader_program.program, "K_materials")
+        self.shininess_loc = GL.glGetUniformLocation(self.shader_program.program, "shininess")
         self.light_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "lightCoord")
-        self.camera_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "cameraCoord")
         self.shading_mode_loc = GL.glGetUniformLocation(self.shader_program.program, "shadingMode")
 
         self.shader_program.activate()
@@ -75,6 +83,26 @@ class Shape:
         GL.glUniform1i(self.texture_data_loc, 0)
         if self.shading_mode_loc != -1:
             GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
+
+        # Set sensible defaults for Phong-eye uniforms if present
+        # Default shininess
+        if self.shininess_loc != -1:
+            GL.glUniform1f(self.shininess_loc, 32.0)
+
+        # Default light/material matrices: columns are [diffuse, specular, unused]
+        if self.I_lights_loc != -1:
+            I = np.zeros((3, 3), dtype=np.float32)
+            I[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)  # diffuse intensity (RGB)
+            I[:, 1] = np.array([1.0, 1.0, 1.0], dtype=np.float32)  # specular intensity (RGB)
+            I[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+            GL.glUniformMatrix3fv(self.I_lights_loc, 1, GL.GL_TRUE, I)
+
+        if self.K_materials_loc != -1:
+            K = np.zeros((3, 3), dtype=np.float32)
+            K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)  # Kd (diffuse reflectance)
+            K[:, 1] = np.array([0.3, 0.3, 0.3], dtype=np.float32)  # Ks (specular reflectance)
+            K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+            GL.glUniformMatrix3fv(self.K_materials_loc, 1, GL.GL_TRUE, K)
         self.shader_program.deactivate()
 
     def draw(self):
@@ -119,19 +147,108 @@ class Shape:
         camera_position: np.ndarray,
     ):
         self.shader_program.activate()
-        GL.glUniform3fv(self.light_color_loc, 1, light_color)
-        GL.glUniform3fv(self.light_coord_loc, 1, light_position)
-        GL.glUniform3fv(self.camera_coord_loc, 1, camera_position)
+        # Build I_lights using the incoming light color/intensities.
+        # Columns correspond to [diffuse, specular, unused].
+        if self.I_lights_loc != -1:
+            I = np.zeros((3, 3), dtype=np.float32)
+            I[:, 0] = np.array(light_color, dtype=np.float32)
+            I[:, 1] = np.array(light_color, dtype=np.float32)
+            I[:, 2] = np.array(light_color, dtype=np.float32)
+            GL.glUniformMatrix3fv(self.I_lights_loc, 1, GL.GL_TRUE, I)
+
+        # Build K_materials from a reasonable default. If you want per-shape
+        # material coefficients modify this method in the specific shape class.
+        if self.K_materials_loc != -1:
+            K = np.zeros((3, 3), dtype=np.float32)
+            # diffuse
+            K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+            # specular
+            K[:, 1] = np.array([0.2, 0.2, 0.2], dtype=np.float32)
+            # ambient
+            K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+            GL.glUniformMatrix3fv(self.K_materials_loc, 1, GL.GL_TRUE, K)
+
+        if self.shininess_loc != -1:
+            GL.glUniform1f(self.shininess_loc, 32.0)
+
+        # light position should be provided in eye-space (renderer or light
+        # node should have transformed it accordingly). Pass it through.
+        if self.light_coord_loc != -1:
+            GL.glUniform3fv(self.light_coord_loc, 1, light_position)
         self.shader_program.deactivate()
 
     def set_shading_mode(self, shading: ShadingModel) -> None:
-        if self.shading_mode_loc == -1:
-            return
         if shading == self.shading_mode:
             return
+        
+        # Determine shader paths based on shading mode
+        if shading == ShadingModel.GOURAUD:
+            vertex_path = _GOURAUD_VERTEX_PATH
+            fragment_path = _GOURAUD_FRAGMENT_PATH
+        elif shading == ShadingModel.PHONG:
+            vertex_path = _SHAPE_VERTEX_PATH
+            fragment_path = _SHAPE_FRAGMENT_PATH
+        else:  # NORMAL
+            vertex_path = _SHAPE_VERTEX_PATH
+            fragment_path = _SHAPE_FRAGMENT_PATH
+        
         self.shading_mode = shading
+        self._reload_shaders(vertex_path, fragment_path)
+    
+    def _reload_shaders(self, vertex_file: str, fragment_file: str):
+        """Reload shaders with new vertex and fragment shader files."""
+        # Clean up old shader program
+        if hasattr(self.shader_program, "cleanup"):
+            self.shader_program.cleanup()
+        
+        # Create new shader program
+        vertex_shader = Shader(vertex_file)
+        fragment_shader = Shader(fragment_file)
+        self.shader_program = ShaderProgram()
+        self.shader_program.add_shader(vertex_shader)
+        self.shader_program.add_shader(fragment_shader)
+        self.shader_program.build()
+        
+        # Re-query all uniform locations
+        self.transform_loc = GL.glGetUniformLocation(self.shader_program.program, "transform")
+        self.camera_loc = GL.glGetUniformLocation(self.shader_program.program, "camera")
+        self.project_loc = GL.glGetUniformLocation(self.shader_program.program, "project")
+        self.use_texture_loc = GL.glGetUniformLocation(self.shader_program.program, "use_texture")
+        self.texture_data_loc = GL.glGetUniformLocation(self.shader_program.program, "textureData")
+        self.I_lights_loc = GL.glGetUniformLocation(self.shader_program.program, "I_lights")
+        self.K_materials_loc = GL.glGetUniformLocation(self.shader_program.program, "K_materials")
+        self.shininess_loc = GL.glGetUniformLocation(self.shader_program.program, "shininess")
+        self.light_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "lightCoord")
+        self.shading_mode_loc = GL.glGetUniformLocation(self.shader_program.program, "shadingMode")
+        
+        # Re-initialize uniforms with defaults
         self.shader_program.activate()
-        GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
+        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
+        GL.glUniformMatrix4fv(self.camera_loc, 1, GL.GL_TRUE, self.identity)
+        GL.glUniformMatrix4fv(self.project_loc, 1, GL.GL_TRUE, self.identity)
+        GL.glUniform1i(self.use_texture_loc, True)
+        GL.glUniform1i(self.texture_data_loc, 0)
+        
+        if self.shading_mode_loc != -1:
+            GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
+        
+        if self.shininess_loc != -1:
+            GL.glUniform1f(self.shininess_loc, 32.0)
+        
+        if self.I_lights_loc != -1:
+            I = np.zeros((3, 3), dtype=np.float32)
+            I[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+            I[:, 1] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+            I[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+            GL.glUniformMatrix3fv(self.I_lights_loc, 1, GL.GL_TRUE, I)
+        
+        if self.K_materials_loc != -1:
+            K = np.zeros((3, 3), dtype=np.float32)
+            K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+            K[:, 1] = np.array([0.3, 0.3, 0.3], dtype=np.float32)
+            K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+            GL.glUniformMatrix3fv(self.K_materials_loc, 1, GL.GL_TRUE, K)
+        
         self.shader_program.deactivate()
 
     @staticmethod

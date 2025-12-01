@@ -18,9 +18,13 @@ uniform mat4 project;
 
 void main()
 {
-    gl_Position = project * camera * transform * vec4(position, 1.0);
     vertexColor = color;
-    vertexNorm = mat3(transpose(inverse(transform))) * norm; // costly, inverse matrix should be computer on CPU
-    vertexCoord = vec3(transform * vec4(position, 1.0));
+
+    vec4 vertexCoord_homo = camera * transform * vec4(position, 1.0);
+    vertexCoord = vec3(vertexCoord_homo) / vertexCoord_homo.w;
+
+    vertexNorm = mat3(transpose(inverse(camera * transform))) * norm; // costly, inverse matrix should be computer on CPU
+
     textureCoord = texture;
+    gl_Position = project * camera * transform * vec4(position, 1.0);
 }

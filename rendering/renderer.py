@@ -56,6 +56,8 @@ class Renderer:
             return
 
         light = self.light_nodes[0].shape
+        
+        # Not use anymore, should be removed
         camera_position = (
             self.trackball.get_camera_position()
             if self.use_trackball

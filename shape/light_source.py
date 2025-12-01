@@ -100,10 +100,13 @@ class LightSource(Shape):
         )
     
     def transform(self, project_matrix, view_matrix, model_matrix):
+        # Transform the light position into eye-space so shaders that expect
+        # eye-space light coordinates receive the correct value.
         homogeneous = np.append(self.position, 1.0)
+        # transformed = np.dot(view_matrix, np.dot(model_matrix, homogeneous))
         transformed = np.dot(model_matrix, homogeneous)
         self.position = transformed[:3]
-        
+
         super().transform(project_matrix, view_matrix, model_matrix)
 
 

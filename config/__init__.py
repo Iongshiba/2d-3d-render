@@ -21,8 +21,10 @@ def _shader_path(*parts: str) -> str:
 
 
 _SHADER_ROOT = Path(__file__).resolve().parent.parent
-_SHAPE_VERTEX_PATH = _shader_path("graphics", "shape.vert")
-_SHAPE_FRAGMENT_PATH = _shader_path("graphics", "shape.frag")
+_SHAPE_VERTEX_PATH = _shader_path("graphics", "phong.vert")
+_SHAPE_FRAGMENT_PATH = _shader_path("graphics", "phong.frag")
+_GOURAUD_VERTEX_PATH = _shader_path("graphics", "gouraud.vert")
+_GOURAUD_FRAGMENT_PATH = _shader_path("graphics", "gouraud.frag")
 _LIGHT_FRAGMENT_PATH = _shader_path("graphics", "light.frag")
 
 
@@ -72,9 +74,9 @@ class ShapeConfig:
     equation_mesh_size: int = 10
     equation_mesh_density: int = 100
 
-    texture_file: str = ""
+    texture_file: str = "textures/cat_text_m.jpg"
 
-    model_file: str = ""
+    model_file: str = "assets/catn0.obj"
 
     base_color: tuple[float | None, float | None, float | None] = (
         207,
@@ -154,6 +156,8 @@ __all__ = [
     "_SHADER_ROOT",
     "_SHAPE_VERTEX_PATH",
     "_SHAPE_FRAGMENT_PATH",
+    "_GOURAUD_VERTEX_PATH",
+    "_GOURAUD_FRAGMENT_PATH",
     "_LIGHT_FRAGMENT_PATH",
     "CameraMovement",
     "ShapeType",

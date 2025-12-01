@@ -286,6 +286,7 @@ class SceneControlOverlay:
         self._shading_labels: dict[ShadingModel, str] = {
             ShadingModel.NORMAL: "Normal",
             ShadingModel.PHONG: "Phong",
+            ShadingModel.GOURAUD: "Gouraud",
         }
         self.renderer.set_shading_model(self.shading_model)
 
@@ -345,7 +346,7 @@ class SceneControlOverlay:
         for shape_type in sorted(
             ShapeFactory.list_registered_shapes(), key=lambda item: item.name
         ):
-            if shape_type in {ShapeType.LIGHT_SOURCE, ShapeType.MODEL}:
+            if shape_type in {ShapeType.LIGHT_SOURCE}:
                 continue
             label = f"{self._format_name(shape_type.name)}"
             option = MenuOption(label=label, kind="shape", value=shape_type)

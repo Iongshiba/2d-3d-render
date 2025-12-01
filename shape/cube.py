@@ -58,11 +58,12 @@ class Cube(Shape):
         coords = vertices_to_coords(vertices)
         
         # Apply gradient colors if gradient_mode is specified
-        if gradient_mode:
-            from utils import generate_gradient_colors
-            colors = generate_gradient_colors(vertices, gradient_mode, gradient_start, gradient_end)
-        else:
-            colors = vertices_to_colors(vertices)
+        # if gradient_mode:
+        #     from utils import generate_gradient_colors
+        #     colors = generate_gradient_colors(vertices, gradient_mode, gradient_start, gradient_end)
+        # else:
+        #     colors = vertices_to_colors(vertices)
+        colors = self._apply_color_override(vertices_to_colors(vertices), color)
 
         indices = np.array([
             # back with normal go out
