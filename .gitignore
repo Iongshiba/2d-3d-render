@@ -140,3 +140,4 @@ yarn-error.log*
 test.ipynb
 exercise/
 .gitignore
+*.dll

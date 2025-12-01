@@ -36,21 +36,33 @@ class Model(Shape):
                 stride=0,
                 offset=None,
             )
+            
+            vao.add_vbo(
+                location=2,
+                data=mesh_data["normals"],
+                ncomponents=mesh_data["normals"].shape[1],
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
 
             # Texture coordinates
-            if mesh_data["tex_coords"] is not None:
-                vao.add_vbo(
-                    location=2,
-                    data=mesh_data["tex_coords"],
-                    ncomponents=mesh_data["tex_coords"].shape[1],
-                    dtype=GL.GL_FLOAT,
-                    normalized=False,
-                    stride=0,
-                    offset=None,
-                )
+            vao.add_vbo(
+                location=3,
+                data=mesh_data["tex_coords"],
+                ncomponents=mesh_data["tex_coords"].shape[1],
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
 
-            # Indices
-            vao.add_ebo(mesh_data["indices"])
+            # Indices - reverse winding order from CCW to CW
+            indices = mesh_data["indices"]
+            # Reshape to triangles, reverse each triangle, then flatten
+            indices_reversed = indices.reshape(-1, 3)[:, ::-1].flatten()
+            vao.add_ebo(indices_reversed)
 
             self.shapes.append(
                 Part(

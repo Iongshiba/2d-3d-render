@@ -74,7 +74,7 @@ class ShapeConfig:
     equation_mesh_size: int = 10
     equation_mesh_density: int = 100
 
-    texture_file: str = ""
+    texture_file: str = "textures/cat_text_m.jpg"
 
     model_file: str = "assets/catn0.obj"
 
