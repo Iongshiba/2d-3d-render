@@ -21,10 +21,6 @@ uniform int shadingMode; // 0 = normal visualization, 1 = Phong
 
 void main()
 {
-    vec3 baseColor = use_texture
-        ? texture(textureData, textureCoord).rgb
-        : vertexColor;
-
     if (shadingMode == 0) {
         color = vec4(vertexColor, 1.0);
         return;
@@ -44,7 +40,13 @@ void main()
         0.0
     );
     vec3 fragColor = matrixCompMult(K_materials, I_lights) * g;
+    vec3 finalColor = vertexColor * 0.5 + fragColor * 0.5;
 
-    
-    color = vec4(vertexColor * 0.5 + fragColor * 0.5, 1.0);
+    if (use_texture)
+    {
+        vec3 texColor = texture(textureData, textureCoord).rgb;
+        finalColor = mix(finalColor, texColor, 0.5);
+    }
+
+    color = vec4(finalColor, 1.0);
 }

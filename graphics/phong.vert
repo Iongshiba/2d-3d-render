@@ -23,7 +23,7 @@ void main()
     vec4 vertexCoord_homo = camera * transform * vec4(position, 1.0);
     vertexCoord = vec3(vertexCoord_homo) / vertexCoord_homo.w;
 
-    vertexNorm = mat3(transpose(inverse(transform))) * norm; // costly, inverse matrix should be computer on CPU
+    vertexNorm = mat3(transpose(inverse(camera * transform))) * norm; // costly, inverse matrix should be computer on CPU
 
     textureCoord = texture;
     gl_Position = project * camera * transform * vec4(position, 1.0);
