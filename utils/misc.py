@@ -4,6 +4,7 @@ import numpy as np
 import pyassimp
 from OpenGL import GL
 from PIL import Image
+from plyfile import PlyData
 
 
 def make_numpy_func(expr, vars=("x", "y")):
@@ -158,21 +159,261 @@ def generate_gradient_colors(vertices, gradient_mode, start_color, end_color):
     return colors
 
 
-def load_model(path):
+def load_ply(path):
+    """Load a PLY file and return mesh data in the same format as pyassimp."""
     meshes = []
-    with pyassimp.load(path) as scene:
-        for mesh in scene.meshes:
-            vertices = np.array(mesh.vertices, dtype=np.float32)
-            normals = np.array(mesh.normals, dtype=np.float32)
-            tex_coords = np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
+    ply_data = PlyData.read(path)
 
-            meshes.append(
-                {
-                    "vertices": vertices,
-                    "normals": normals,
-                    "tex_coords": tex_coords,
-                    "indices": np.array(mesh.faces, dtype=np.uint32).flatten(),
-                }
-            )
+    # Extract vertex data
+    vertex_data = ply_data["vertex"]
+    vertices = np.column_stack(
+        [vertex_data["x"], vertex_data["y"], vertex_data["z"]]
+    ).astype(np.float32)
+
+    # Extract normals (if available)
+    if "nx" in vertex_data and "ny" in vertex_data and "nz" in vertex_data:
+        normals = np.column_stack(
+            [vertex_data["nx"], vertex_data["ny"], vertex_data["nz"]]
+        ).astype(np.float32)
+    else:
+        # Create zero normals if not available
+        normals = np.zeros_like(vertices, dtype=np.float32)
+
+    # Extract texture coordinates (if available)
+    if "u" in vertex_data and "v" in vertex_data:
+        tex_coords = np.column_stack([vertex_data["u"], vertex_data["v"]]).astype(
+            np.float32
+        )
+    elif "s" in vertex_data and "t" in vertex_data:
+        tex_coords = np.column_stack([vertex_data["s"], vertex_data["t"]]).astype(
+            np.float32
+        )
+    else:
+        # Create zero texture coordinates if not available
+        tex_coords = np.zeros((len(vertices), 2), dtype=np.float32)
+
+    # Extract face indices
+    if "face" in ply_data:
+        face_data = ply_data["face"]
+        indices = np.array(
+            [face for face in face_data["vertex_indices"]], dtype=np.uint32
+        ).flatten()
+    else:
+        # No faces, create empty indices
+        indices = np.array([], dtype=np.uint32)
+
+    meshes.append(
+        {
+            "vertices": vertices,
+            "normals": normals,
+            "tex_coords": tex_coords,
+            "indices": indices,
+        }
+    )
 
     return meshes
+
+
+def load_obj(path):
+    """Load OBJ file format - matches pyassimp output format"""
+    raw_vertices = []
+    raw_normals = []
+    raw_tex_coords = []
+    faces = []  # List of face tuples: (v_idx, vt_idx, vn_idx)
+
+    with open(path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            parts = line.split()
+            if not parts:
+                continue
+
+            if parts[0] == "v":
+                # Vertex position
+                raw_vertices.append([float(parts[1]), float(parts[2]), float(parts[3])])
+            elif parts[0] == "vn":
+                # Vertex normal
+                raw_normals.append([float(parts[1]), float(parts[2]), float(parts[3])])
+            elif parts[0] == "vt":
+                # Texture coordinate
+                raw_tex_coords.append([float(parts[1]), float(parts[2])])
+            elif parts[0] == "f":
+                # Face - parse all vertex indices
+                face = []
+                for i in range(1, len(parts)):
+                    indices = parts[i].split("/")
+                    # Vertex index (1-based, convert to 0-based)
+                    v_idx = int(indices[0]) - 1
+                    # Texture coordinate index (optional)
+                    vt_idx = (
+                        int(indices[1]) - 1 if len(indices) > 1 and indices[1] else -1
+                    )
+                    # Normal index (optional)
+                    vn_idx = (
+                        int(indices[2]) - 1 if len(indices) > 2 and indices[2] else -1
+                    )
+                    face.append((v_idx, vt_idx, vn_idx))
+
+                # Triangulate if needed
+                num_verts = len(face)
+                if num_verts == 3:
+                    faces.append(face)
+                elif num_verts > 3:
+                    # Fan triangulation
+                    for i in range(1, num_verts - 1):
+                        faces.append([face[0], face[i], face[i + 1]])
+
+    raw_vertices = np.array(raw_vertices, dtype=np.float32)
+    raw_normals = np.array(raw_normals, dtype=np.float32) if raw_normals else None
+    raw_tex_coords = (
+        np.array(raw_tex_coords, dtype=np.float32) if raw_tex_coords else None
+    )
+
+    # Build unique vertex combinations (like pyassimp does)
+    # Each unique (v, vt, vn) combination becomes a new vertex
+    unique_verts = {}
+    out_vertices = []
+    out_normals = []
+    out_tex_coords = []
+    out_indices = []
+
+    for face in faces:
+        for v_idx, vt_idx, vn_idx in face:
+            key = (v_idx, vt_idx, vn_idx)
+            if key not in unique_verts:
+                new_idx = len(out_vertices)
+                unique_verts[key] = new_idx
+
+                # Add vertex position
+                out_vertices.append(raw_vertices[v_idx])
+
+                # Add texture coordinate
+                if raw_tex_coords is not None and vt_idx >= 0:
+                    out_tex_coords.append(raw_tex_coords[vt_idx])
+                else:
+                    out_tex_coords.append([0.0, 0.0])
+
+                # Add normal
+                if raw_normals is not None and vn_idx >= 0:
+                    out_normals.append(raw_normals[vn_idx])
+                else:
+                    out_normals.append([0.0, 0.0, 0.0])
+
+            out_indices.append(unique_verts[key])
+
+    out_vertices = np.array(out_vertices, dtype=np.float32)
+    out_normals = np.array(out_normals, dtype=np.float32)
+    out_tex_coords = np.array(out_tex_coords, dtype=np.float32)
+    out_indices = np.array(out_indices, dtype=np.uint32)
+
+    # Generate normals if not present in the file
+    if raw_normals is None or len(raw_normals) == 0:
+        out_normals = np.zeros_like(out_vertices)
+        indices_reshaped = out_indices.reshape(-1, 3)
+        for face_indices in indices_reshaped:
+            v0, v1, v2 = out_vertices[face_indices]
+            normal = np.cross(v1 - v0, v2 - v0)
+            norm_len = np.linalg.norm(normal)
+            if norm_len > 0:
+                normal = normal / norm_len
+            out_normals[face_indices] += normal
+        # Normalize accumulated normals
+        norms = np.linalg.norm(out_normals, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        out_normals = out_normals / norms
+
+    return [
+        {
+            "vertices": out_vertices,
+            "normals": out_normals,
+            "tex_coords": out_tex_coords,
+            "indices": out_indices,
+        }
+    ]
+
+
+def load_model(path):
+    """Load 3D model from PLY or OBJ file"""
+    ext = path.lower().split(".")[-1]
+
+    if ext == "ply":
+        return load_ply(path)
+    elif ext == "obj":
+        # return load_obj(path)
+        # Load OBJ meshes
+        print("saved")
+        meshes = load_obj(path)
+
+        # Write texture coordinates to a debug file. Use numpy.savetxt
+        # to write numeric arrays; fall back to string if something fails.
+        try:
+            tex = meshes[0].get("tex_coords")
+            if tex is None:
+                raise ValueError("No tex_coords in mesh")
+
+            # Ensure tex is a numpy array
+            tex_arr = np.array(tex)
+
+            # If tex_arr is 1D, reshape to (-1, 2) when possible
+            if tex_arr.ndim == 1 and tex_arr.size % 2 == 0:
+                tex_arr = tex_arr.reshape(-1, 2)
+
+            # Save with 6 decimal places, two columns (u v)
+            np.savetxt("test1.txt", tex_arr, fmt="%.6f", header="u v", comments="")
+        except Exception:
+            # Fallback: write a readable string representation
+            with open("test1.txt", "w") as f:
+                try:
+                    f.write(str(meshes[0].get("tex_coords")))
+                except Exception as e:
+                    f.write("<failed to write tex_coords: %s>" % e)
+
+        return meshes
+    else:
+        # Fallback to pyassimp for other formats
+        meshes = []
+        with pyassimp.load(path) as scene:
+            for mesh in scene.meshes:
+                vertices = np.array(mesh.vertices, dtype=np.float32)
+                normals = np.array(mesh.normals, dtype=np.float32)
+                tex_coords = np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
+
+                meshes.append(
+                    {
+                        "vertices": vertices,
+                        "normals": normals,
+                        "tex_coords": tex_coords,
+                        "indices": np.array(mesh.faces, dtype=np.uint32).flatten(),
+                    }
+                )
+        # print("saved pyassuno")
+
+        # # Write texture coordinates to a debug file. Use numpy.savetxt
+        # # to write numeric arrays; fall back to string if something fails.
+        # try:
+        #     tex = meshes[0].get("tex_coords")
+        #     if tex is None:
+        #         raise ValueError("No tex_coords in mesh")
+
+        #     # Ensure tex is a numpy array
+        #     tex_arr = np.array(tex)
+
+        #     # If tex_arr is 1D, reshape to (-1, 2) when possible
+        #     if tex_arr.ndim == 1 and tex_arr.size % 2 == 0:
+        #         tex_arr = tex_arr.reshape(-1, 2)
+
+        #     # Save with 6 decimal places, two columns (u v)
+        #     np.savetxt("test.txt", tex_arr, fmt="%.6f", header="u v", comments="")
+        # except Exception:
+        #     # Fallback: write a readable string representation
+        #     with open("test.txt", "w") as f:
+        #         try:
+        #             f.write(str(meshes[0].get("tex_coords")))
+        #         except Exception as e:
+        #             f.write("<failed to write tex_coords: %s>" % e)
+
+        # return meshes
+        return meshes
