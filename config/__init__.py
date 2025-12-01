@@ -28,6 +28,14 @@ _GOURAUD_FRAGMENT_PATH = _shader_path("graphics", "gouraud.frag")
 _LIGHT_FRAGMENT_PATH = _shader_path("graphics", "light.frag")
 
 
+# Model to texture mapping
+MODEL_TEXTURE_MAP = {
+    "catn0.obj": "cat_text_m.jpg",
+    "Patchwork chair.ply": "Patchwork chair_0.jpg",
+    "Christmas Bear.obj": "Christmas Bear_1.jpg",
+}
+
+
 @dataclass(slots=True)
 class ShapeConfig:
     """Shape specific configuration attributes."""
@@ -74,9 +82,9 @@ class ShapeConfig:
     equation_mesh_size: int = 10
     equation_mesh_density: int = 100
 
-    texture_file: str = "textures/cat_text_m.jpg"
+    texture_file: str = ""
 
-    model_file: str = "assets/catn0.obj"
+    model_file: str = ""
 
     base_color: tuple[float | None, float | None, float | None] = (
         207,
@@ -153,6 +161,7 @@ __all__ = [
     "ShapeConfig",
     "CameraConfig",
     "TrackballConfig",
+    "MODEL_TEXTURE_MAP",
     "_SHADER_ROOT",
     "_SHAPE_VERTEX_PATH",
     "_SHAPE_FRAGMENT_PATH",

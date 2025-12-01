@@ -3,6 +3,7 @@ from __future__ import annotations
 import gc
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Sequence
 
 import glfw
@@ -11,8 +12,7 @@ from imgui.integrations.glfw import GlfwRenderer  # type: ignore
 
 from OpenGL import GL
 
-from config import ShapeConfig, ShapeType, ShadingModel
-from config import GradientMode
+from config import ShapeConfig, ShapeType, ShadingModel, MODEL_TEXTURE_MAP
 from config.palette import COLOR_PRESETS, ColorPreset
 from rendering.camera import CameraMovement
 from shape.factory import ShapeFactory
@@ -243,7 +243,7 @@ class App:
 @dataclass(slots=True)
 class MenuOption:
     label: str
-    kind: str  # 'template' or 'shape'
+    kind: str  # 'template', 'shape', or 'model'
     value: str | ShapeType
 
 
@@ -272,12 +272,16 @@ class SceneControlOverlay:
             self._template_options,
             self._shape_options_2d,
             self._shape_options_3d,
+            self._model_options,
         ) = self._build_options()
         if not (
-            self._template_options or self._shape_options_2d or self._shape_options_3d
+            self._template_options
+            or self._shape_options_2d
+            or self._shape_options_3d
+            or self._model_options
         ):
             raise RuntimeError(
-                "No templates or shapes were discovered for the control overlay."
+                "No templates, shapes, or models were discovered for the control overlay."
             )
 
         self._current_option: MenuOption | None = None
@@ -290,22 +294,12 @@ class SceneControlOverlay:
         }
         self.renderer.set_shading_model(self.shading_model)
 
-        # Gradient settings
-        self._gradient_labels: dict[GradientMode, str] = {
-            GradientMode.NONE: "None",
-            GradientMode.LINEAR_X: "Linear X",
-            GradientMode.LINEAR_Y: "Linear Y",
-            GradientMode.LINEAR_Z: "Linear Z",
-            GradientMode.RADIAL: "Radial",
-            GradientMode.DIAGONAL: "Diagonal",
-            GradientMode.RAINBOW: "Rainbow",
-        }
-
         # Activate first available option so the renderer has a scene before the main loop.
         initial_option = (
             self._template_options[:1]
             or self._shape_options_3d[:1]
             or self._shape_options_2d[:1]
+            or self._model_options[:1]
         )[0]
         self._apply_selection(initial_option)
 
@@ -332,10 +326,11 @@ class SceneControlOverlay:
 
     def _build_options(
         self,
-    ) -> tuple[List[MenuOption], List[MenuOption], List[MenuOption]]:
+    ) -> tuple[List[MenuOption], List[MenuOption], List[MenuOption], List[MenuOption]]:
         template_options: List[MenuOption] = []
         shape_options_2d: List[MenuOption] = []
         shape_options_3d: List[MenuOption] = []
+        model_options: List[MenuOption] = []
 
         for name in sorted(self._scene_controller.listscenes()):
             label = f"{self._format_name(name)}"
@@ -346,7 +341,7 @@ class SceneControlOverlay:
         for shape_type in sorted(
             ShapeFactory.list_registered_shapes(), key=lambda item: item.name
         ):
-            if shape_type in {ShapeType.LIGHT_SOURCE}:
+            if shape_type in {ShapeType.LIGHT_SOURCE, ShapeType.MODEL}:
                 continue
             label = f"{self._format_name(shape_type.name)}"
             option = MenuOption(label=label, kind="shape", value=shape_type)
@@ -355,12 +350,39 @@ class SceneControlOverlay:
             else:
                 shape_options_3d.append(option)
 
-        return template_options, shape_options_2d, shape_options_3d
+        # Scan assets folder for 3D models
+        assets_path = Path("assets")
+        if assets_path.exists():
+            for model_file in sorted(assets_path.iterdir()):
+                if model_file.suffix.lower() in [".obj", ".ply"]:
+                    label = model_file.stem.replace("_", " ").title()
+                    model_options.append(
+                        MenuOption(label=label, kind="model", value=model_file.name)
+                    )
+
+        return template_options, shape_options_2d, shape_options_3d, model_options
 
     def _apply_selection(self, option: MenuOption) -> None:
         if option.kind == "template":
             scene = self._scene_controller.set_current(option.value)
             root = scene.rebuild()
+            self.renderer.set_scene(root)
+            self.renderer.set_face_culling(True)
+            self.renderer.set_shading_model(ShadingModel.PHONG)
+            self.shading_model = ShadingModel.PHONG
+        elif option.kind == "model":
+            # Load model with optional texture mapping
+            model_filename = option.value
+            self._shape_config.model_file = f"assets/{model_filename}"
+
+            # Set texture from mapping if available
+            texture_filename = MODEL_TEXTURE_MAP.get(model_filename)
+            if texture_filename:
+                self._shape_config.texture_file = f"textures/{texture_filename}"
+            else:
+                self._shape_config.texture_file = None
+
+            root = build_shape_scene(ShapeType.MODEL, self._shape_config)
             self.renderer.set_scene(root)
             self.renderer.set_face_culling(True)
             self.renderer.set_shading_model(ShadingModel.PHONG)
@@ -407,6 +429,8 @@ class SceneControlOverlay:
             self._render_combo("2D Shapes", self._shape_options_2d)
         if self._shape_options_3d:
             self._render_combo("3D Shapes", self._shape_options_3d)
+        if self._model_options:
+            self._render_combo("Models", self._model_options)
 
         self._imgui.spacing()
 
@@ -431,24 +455,6 @@ class SceneControlOverlay:
                     self._color_index = idx
                     self._shape_config.base_color = preset.rgb
                     self._shape_config.gradient_mode = None
-                    if self._current_option and self._current_option.kind == "shape":
-                        self._apply_selection(self._current_option)
-                if is_selected:
-                    self._imgui.set_item_default_focus()
-            self._imgui.end_combo()
-
-        # Gradient Mode selection
-        current_gradient = self._shape_config.gradient_mode or GradientMode.NONE
-        gradient_label = self._gradient_labels[current_gradient]
-        if self._imgui.begin_combo("Gradient", gradient_label):
-            for mode, label in self._gradient_labels.items():
-                is_selected = mode is current_gradient
-                clicked, _ = self._imgui.selectable(label, is_selected)
-                if clicked and mode is not current_gradient:
-                    self._shape_config.gradient_mode = (
-                        mode if mode != GradientMode.NONE else None
-                    )
-                    self._color_index = -1
                     if self._current_option and self._current_option.kind == "shape":
                         self._apply_selection(self._current_option)
                 if is_selected:
