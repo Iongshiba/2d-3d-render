@@ -65,6 +65,22 @@ root/
 └── textures/           # Texture image files
 ```
 
+## Documentation
+
+📚 **Comprehensive documentation is available:**
+
+- **[INDEX.md](INDEX.md)** - Documentation index and navigation guide
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed architecture and design explanation
+- **[DIAGRAMS.md](DIAGRAMS.md)** - Visual diagrams (Mermaid) showing system components
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Cheat sheet for common tasks and troubleshooting
+
+**Quick Links:**
+- [How the Scene Graph works](ARCHITECTURE.md#scene-graph-system)
+- [Rendering pipeline explained](ARCHITECTURE.md#rendering-pipeline)
+- [Visual component diagrams](DIAGRAMS.md#class-hierarchy)
+- [Common code patterns](QUICK_REFERENCE.md#common-patterns)
+- [Troubleshooting guide](QUICK_REFERENCE.md#troubleshooting)
+
 ## Troubleshooting
 
 **Linux users:** If you encounter display issues, set the OpenGL platform:
@@ -75,3 +91,5 @@ export PYOPENGL_PLATFORM=egl
 **Import errors:** Make sure you're running from the `engine` directory where all modules are located.
 
 **OpenGL errors:** Update your graphics drivers to the latest version.
+
+**More help:** See [QUICK_REFERENCE.md - Troubleshooting](QUICK_REFERENCE.md#troubleshooting) for detailed solutions.
