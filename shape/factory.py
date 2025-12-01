@@ -168,7 +168,6 @@ ShapeFactory.register_shape(
         vertex_file=_SHAPE_VERTEX_PATH,
         fragment_file=_SHAPE_FRAGMENT_PATH,
         texture_file=cfg.texture_file,
-        **_get_gradient_params(cfg),
     ),
 )
 
