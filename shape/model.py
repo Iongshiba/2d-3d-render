@@ -36,7 +36,7 @@ class Model(Shape):
                 stride=0,
                 offset=None,
             )
-            
+
             vao.add_vbo(
                 location=2,
                 data=mesh_data["normals"],
