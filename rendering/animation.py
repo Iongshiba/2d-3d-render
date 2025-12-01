@@ -80,7 +80,6 @@ def gradient_descent(
         else:
             displacement -= learning_rate * xy_grad * dt
         # fmt: on
-        print(displacement)
 
         # Calculate new position
         new_x = x + displacement[0]

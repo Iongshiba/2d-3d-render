@@ -29,7 +29,8 @@ class Arrow(Shape):
         ]
 
         triangle_coords = vertices_to_coords(triangle_vertices)
-        triangle_colors = vertices_to_colors(triangle_vertices)
+        triangle_colors = self._apply_color_override(vertices_to_colors(triangle_vertices), color)
+
 
         triangle_vao = VAO()
         triangle_vao.add_vbo(
@@ -60,7 +61,7 @@ class Arrow(Shape):
         ]
 
         rectangle_coords = vertices_to_coords(rectangle_vertices)
-        rectangle_colors = vertices_to_colors(rectangle_vertices)
+        rectangle_colors = self._apply_color_override(vertices_to_colors(rectangle_vertices), color)
 
         rectangle_vao = VAO()
         rectangle_vao.add_vbo(

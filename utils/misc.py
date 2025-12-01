@@ -158,20 +158,20 @@ def generate_gradient_colors(vertices, gradient_mode, start_color, end_color):
 
 
 def load_model(path):
-    pass
-    # meshes = []
-    # with pyassimp.load(path) as scene:
-    #     for mesh in scene.meshes:
-    #         vertices = np.array(mesh.vertices, dtype=np.float32)
+    return
+    meshes = []
+    with pyassimp.load(path) as scene:
+        for mesh in scene.meshes:
+            vertices = np.array(mesh.vertices, dtype=np.float32)
 
-    #         tex_coords = np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
+            tex_coords = np.array(mesh.texturecoords[0][:, :2], dtype=np.float32)
 
-    #         meshes.append(
-    #             {
-    #                 "vertices": vertices,
-    #                 "tex_coords": tex_coords,
-    #                 "indices": np.array(mesh.faces, dtype=np.uint32).flatten(),
-    #             }
-    #         )
+            meshes.append(
+                {
+                    "vertices": vertices,
+                    "tex_coords": tex_coords,
+                    "indices": np.array(mesh.faces, dtype=np.uint32).flatten(),
+                }
+            )
 
-    # return meshes
+    return meshes

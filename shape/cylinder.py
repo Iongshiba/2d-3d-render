@@ -55,10 +55,12 @@ class Cylinder(Shape):
         side_norms.extend([side_norms[0], side_norms[1]])
 
         top_coords = vertices_to_coords(top_circle)
-        top_colors = vertices_to_colors(top_circle)
+        # top_colors = vertices_to_colors(top_circle)
+        top_colors = self._apply_color_override(vertices_to_colors(top_circle), color)
         top_norms = np.tile(vector_up, (len(top_circle), 1))
         bottom_coords = vertices_to_coords(bottom_circle)
-        bottom_colors = vertices_to_colors(bottom_circle)
+        # bottom_colors = vertices_to_colors(bottom_circle)
+        bottom_colors = self._apply_color_override(vertices_to_colors(bottom_circle), color)
         bottom_norms = np.tile(-vector_up, (len(bottom_circle), 1))
         side_norms = np.array(side_norms, dtype=np.float32)
 

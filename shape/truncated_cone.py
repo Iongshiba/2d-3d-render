@@ -62,10 +62,10 @@ class TruncatedCone(Shape):
         )
 
         top_coords = vertices_to_coords(top_circle)
-        top_colors = vertices_to_colors(top_circle)
+        top_colors = self._apply_color_override(vertices_to_colors(top_circle), color)
         top_norms = np.tile(vector_up, len(top_coords))
         bottom_coords = vertices_to_coords(bottom_circle)
-        bottom_colors = vertices_to_colors(bottom_circle)
+        bottom_colors = self._apply_color_override(vertices_to_colors(bottom_circle), color)
         bottom_norms = np.tile(-vector_up, len(bottom_coords))
         side_norms = np.array(side_norms, dtype=np.float32)
 

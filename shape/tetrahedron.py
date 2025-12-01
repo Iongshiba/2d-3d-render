@@ -10,7 +10,13 @@ from shape.base import Shape, Part
 
 # TODO: CUSTOMIZABLE
 class Tetrahedron(Shape):
-    def __init__(self, vertex_file, fragment_file):
+    def __init__(
+        self, 
+        color=(None, None, None),
+        vertex_file=None, 
+        fragment_file=None,
+        texture_file=None,
+        ):
         super().__init__(vertex_file, fragment_file)
 
         # fmt: off
@@ -29,7 +35,7 @@ class Tetrahedron(Shape):
         # fmt: on
 
         coords = vertices_to_coords(vertices)
-        colors = vertices_to_colors(vertices)
+        colors = self._apply_color_override(vertices_to_colors(vertices), color)
 
         vao = VAO()
         vao.add_vbo(

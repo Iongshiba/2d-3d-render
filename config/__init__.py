@@ -21,8 +21,8 @@ def _shader_path(*parts: str) -> str:
 
 
 _SHADER_ROOT = Path(__file__).resolve().parent.parent
-_SHAPE_VERTEX_PATH = _shader_path("graphics", "shape.vert")
-_SHAPE_FRAGMENT_PATH = _shader_path("graphics", "shape.frag")
+_SHAPE_VERTEX_PATH = _shader_path("graphics", "phong.vert")
+_SHAPE_FRAGMENT_PATH = _shader_path("graphics", "phong.frag")
 _LIGHT_FRAGMENT_PATH = _shader_path("graphics", "light.frag")
 
 

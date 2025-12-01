@@ -53,7 +53,7 @@ class Cone(Shape):
         bottom_norms.append(bottom_norms[2])
 
         coords = vertices_to_coords(vertices)
-        colors = vertices_to_colors(vertices)
+        colors = self._apply_color_override(vertices_to_colors(vertices), color)
         top_norms = np.array(top_norms, dtype=np.float32)
         bottom_norms = np.array(bottom_norms, dtype=np.float32)
 
