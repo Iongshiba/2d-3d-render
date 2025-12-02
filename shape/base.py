@@ -147,7 +147,7 @@ class Shape:
         camera_position: np.ndarray,
     ):
         self.shader_program.activate()
-        # Build I_lights using the incoming light color/intensities.
+
         # Columns correspond to [diffuse, specular, unused].
         if self.I_lights_loc != -1:
             I = np.zeros((3, 3), dtype=np.float32)
@@ -156,7 +156,6 @@ class Shape:
             I[:, 2] = np.array(light_color, dtype=np.float32)
             GL.glUniformMatrix3fv(self.I_lights_loc, 1, GL.GL_TRUE, I)
 
-        # Build K_materials from a reasonable default. If you want per-shape
         # material coefficients modify this method in the specific shape class.
         if self.K_materials_loc != -1:
             K = np.zeros((3, 3), dtype=np.float32)
@@ -171,8 +170,7 @@ class Shape:
         if self.shininess_loc != -1:
             GL.glUniform1f(self.shininess_loc, 32.0)
 
-        # light position should be provided in eye-space (renderer or light
-        # node should have transformed it accordingly). Pass it through.
+        # light position should be provided in eye-space
         if self.light_coord_loc != -1:
             GL.glUniform3fv(self.light_coord_loc, 1, light_position)
         self.shader_program.deactivate()

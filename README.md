@@ -39,7 +39,11 @@ python run.py
 - **Mouse drag (left button)** - Rotate view
 - **Mouse drag (right button)** - Pan view
 - **Mouse scroll** - Zoom in/out
-- **W** - Toggle wireframe mode
+- **F** - Toggle wireframe mode
+- **B** - Toggle bounding box visualization (3D models)
+- **N** - Toggle depth map visualization (3D models)
+- **M** - Toggle segmentation mask visualization (3D models)
+- **V** - Export dataset (COCO and YOLO formats)
 - **Q / ESC** - Quit application
 
 ## Features
@@ -50,6 +54,7 @@ python run.py
 - Pre-built molecular structures (atoms, molecules, water, CO₂)
 - Gradient descent visualizer (adam, adagrad, rmsdrop)
 - Custom scene builder with orbiting objects
+- **Dataset export** - Export rendered models with bounding boxes, depth maps, and segmentation masks in COCO and YOLO formats
 
 ## Project Structure
 
@@ -73,6 +78,7 @@ root/
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed architecture and design explanation
 - **[DIAGRAMS.md](DIAGRAMS.md)** - Visual diagrams (Mermaid) showing system components
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Cheat sheet for common tasks and troubleshooting
+- **[DATASET_EXPORT.md](DATASET_EXPORT.md)** - Dataset export feature documentation (COCO and YOLO formats)
 
 **Quick Links:**
 - [How the Scene Graph works](ARCHITECTURE.md#scene-graph-system)
@@ -80,6 +86,7 @@ root/
 - [Visual component diagrams](DIAGRAMS.md#class-hierarchy)
 - [Common code patterns](QUICK_REFERENCE.md#common-patterns)
 - [Troubleshooting guide](QUICK_REFERENCE.md#troubleshooting)
+- [Dataset export guide](DATASET_EXPORT.md)
 
 ## Troubleshooting
 

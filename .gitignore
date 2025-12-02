@@ -141,3 +141,4 @@ test.ipynb
 exercise/
 .gitignore
 *.dll
+dataset/

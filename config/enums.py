@@ -66,3 +66,10 @@ class GradientMode(Enum):
     RADIAL = 4  # Gradient from center
     DIAGONAL = 5  # Gradient along diagonal
     RAINBOW = 6  # Rainbow gradient
+
+
+class ModelVisualizationMode(Enum):
+    NORMAL = 0  # Normal rendering
+    BOUNDING_BOX = 1  # Display bounding box
+    DEPTH_MAP = 2  # Display depth map
+    SEGMENTATION_MASK = 3  # Display segmentation mask

@@ -342,36 +342,7 @@ def load_model(path):
     if ext == "ply":
         return load_ply(path)
     elif ext == "obj":
-        # return load_obj(path)
-        # Load OBJ meshes
-        print("saved")
-        meshes = load_obj(path)
-
-        # Write texture coordinates to a debug file. Use numpy.savetxt
-        # to write numeric arrays; fall back to string if something fails.
-        try:
-            tex = meshes[0].get("tex_coords")
-            if tex is None:
-                raise ValueError("No tex_coords in mesh")
-
-            # Ensure tex is a numpy array
-            tex_arr = np.array(tex)
-
-            # If tex_arr is 1D, reshape to (-1, 2) when possible
-            if tex_arr.ndim == 1 and tex_arr.size % 2 == 0:
-                tex_arr = tex_arr.reshape(-1, 2)
-
-            # Save with 6 decimal places, two columns (u v)
-            np.savetxt("test1.txt", tex_arr, fmt="%.6f", header="u v", comments="")
-        except Exception:
-            # Fallback: write a readable string representation
-            with open("test1.txt", "w") as f:
-                try:
-                    f.write(str(meshes[0].get("tex_coords")))
-                except Exception as e:
-                    f.write("<failed to write tex_coords: %s>" % e)
-
-        return meshes
+        return load_obj(path)
     else:
         # Fallback to pyassimp for other formats
         meshes = []
@@ -389,31 +360,4 @@ def load_model(path):
                         "indices": np.array(mesh.faces, dtype=np.uint32).flatten(),
                     }
                 )
-        # print("saved pyassuno")
-
-        # # Write texture coordinates to a debug file. Use numpy.savetxt
-        # # to write numeric arrays; fall back to string if something fails.
-        # try:
-        #     tex = meshes[0].get("tex_coords")
-        #     if tex is None:
-        #         raise ValueError("No tex_coords in mesh")
-
-        #     # Ensure tex is a numpy array
-        #     tex_arr = np.array(tex)
-
-        #     # If tex_arr is 1D, reshape to (-1, 2) when possible
-        #     if tex_arr.ndim == 1 and tex_arr.size % 2 == 0:
-        #         tex_arr = tex_arr.reshape(-1, 2)
-
-        #     # Save with 6 decimal places, two columns (u v)
-        #     np.savetxt("test.txt", tex_arr, fmt="%.6f", header="u v", comments="")
-        # except Exception:
-        #     # Fallback: write a readable string representation
-        #     with open("test.txt", "w") as f:
-        #         try:
-        #             f.write(str(meshes[0].get("tex_coords")))
-        #         except Exception as e:
-        #             f.write("<failed to write tex_coords: %s>" % e)
-
-        # return meshes
         return meshes

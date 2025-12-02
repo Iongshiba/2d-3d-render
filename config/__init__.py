@@ -13,6 +13,7 @@ from .enums import (
     TextureMode,
     RenderMode,
     GradientMode,
+    ModelVisualizationMode,
 )
 
 
@@ -175,4 +176,5 @@ __all__ = [
     "TextureMode",
     "RenderMode",
     "GradientMode",
+    "ModelVisualizationMode",
 ]

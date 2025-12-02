@@ -13,11 +13,14 @@ from imgui.integrations.glfw import GlfwRenderer  # type: ignore
 from OpenGL import GL
 
 from config import ShapeConfig, ShapeType, ShadingModel, MODEL_TEXTURE_MAP
+from config import ModelVisualizationMode
 from config.palette import COLOR_PRESETS, ColorPreset
 from rendering.camera import CameraMovement
 from shape.factory import ShapeFactory
+from shape.model import Model
 from template import SceneController, create_controller
 from template.shape_gallery import build_shape_scene, is_2d_shape
+from utils.dataset_export import DatasetExporter
 
 
 class App:
@@ -77,6 +80,9 @@ class App:
         self._last_time = glfw.get_time()
 
         self.use_arcball = use_trackball
+
+        # Initialize dataset exporter
+        self.dataset_exporter = DatasetExporter()
 
     def _on_resize(self, window, width, height):
         width = max(int(width), 1)
@@ -142,6 +148,16 @@ class App:
                 glfw.set_window_should_close(window, True)
             if key == glfw.KEY_F and self.renderer:
                 self.renderer.toggle_wireframe()
+            if key == glfw.KEY_B and self.renderer:
+                self._toggle_model_visualization(ModelVisualizationMode.BOUNDING_BOX)
+            if key == glfw.KEY_N and self.renderer:
+                self._toggle_model_visualization(ModelVisualizationMode.DEPTH_MAP)
+            if key == glfw.KEY_M and self.renderer:
+                self._toggle_model_visualization(
+                    ModelVisualizationMode.SEGMENTATION_MASK
+                )
+            if key == glfw.KEY_V and self.renderer:
+                self._export_dataset()
             if key in self.pressed_keys:
                 self.pressed_keys[key] = True
         elif action == glfw.RELEASE and key in self.pressed_keys:
@@ -238,6 +254,62 @@ class App:
             self.renderer.move_camera(CameraMovement.LEFT, delta_time)
         if self.pressed_keys.get(glfw.KEY_D):
             self.renderer.move_camera(CameraMovement.RIGHT, delta_time)
+
+    def _toggle_model_visualization(self, mode: ModelVisualizationMode) -> None:
+        """Toggle visualization mode for all Model instances in the scene."""
+        if not self.renderer or not self.renderer.root:
+            return
+
+        models = self._find_models_in_scene(self.renderer.root)
+        for model in models:
+            # Toggle: if already in this mode, switch to NORMAL; otherwise switch to requested mode
+            if model.visualization_mode == mode:
+                model.set_visualization_mode(ModelVisualizationMode.NORMAL)
+            else:
+                model.set_visualization_mode(mode)
+
+    def _find_models_in_scene(self, node) -> list:
+        """Recursively find all Model instances in the scene tree."""
+        models = []
+
+        # Check if this node contains a Model
+        if hasattr(node, "shape") and isinstance(node.shape, Model):
+            models.append(node.shape)
+
+        # Recursively check children
+        if hasattr(node, "children"):
+            for child in node.children:
+                models.extend(self._find_models_in_scene(child))
+
+        return models
+
+    def _export_dataset(self) -> None:
+        """Export current scene to dataset formats (COCO and YOLO)."""
+        if not self.renderer or not self.renderer.root:
+            print("No scene to export")
+            return
+
+        # Find all models in the scene
+        models = self._find_models_in_scene(self.renderer.root)
+
+        if not models:
+            print("No models found in scene to export")
+            return
+
+        # Perform export
+        try:
+            status = self.dataset_exporter.export_dataset(
+                width=self.width,
+                height=self.height,
+                models=models,
+                renderer=self.renderer,
+            )
+            print(status)
+        except Exception as e:
+            print(f"Export failed: {e}")
+            import traceback
+
+            traceback.print_exc()
 
 
 @dataclass(slots=True)
