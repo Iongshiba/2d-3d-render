@@ -19,15 +19,33 @@ Make sure you have Python 3.11 installed:
 python3.11 --version
 ```
 
-### 2. Install Dependencies
+### 2. Clone the Repository
 
 ```bash
-pip install numpy PyOpenGL glfw imgui[glfw] Pillow pyassimp
+git clone https://github.com/Iongshiba/2d-3d-render.git
+cd 2d-3d-render
 ```
 
-### 3. Install Assimp Library (Windows)
+### 3. Install Dependencies
 
-For 3D model loading support, you need the Assimp DLL:
+```bash
+pip install -r requirements.txt
+```
+
+**Dependencies include:**
+- `numpy` - Numerical computations
+- `scipy` - Scientific computing
+- `pillow` - Image processing
+- `opencv-python` - Computer vision (for segmentation masks)
+- `PyOpenGL` - OpenGL bindings
+- `glfw` - Window and input management
+- `imgui[glfw]` - UI rendering
+- `pyassimp` - 3D model loading (GLTF, FBX, etc.)
+- `plyfile` - PLY format support
+
+### 4. Install Assimp Library (Windows)
+
+For loading OBJ and other 3D formats, you need the Assimp native library:
 
 **Windows:**
 1. Download `assimp-vc143-mt.dll` from [Assimp releases](https://github.com/assimp/assimp/releases)
@@ -42,7 +60,7 @@ sudo apt-get install libassimp-dev
 brew install assimp
 ```
 
-### 4. Run the Application
+### 5. Run the Application
 
 Run the `run.py` script:
 
