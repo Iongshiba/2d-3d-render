@@ -79,6 +79,9 @@ python run.py
 ### Rendering Modes
 - **F** - Toggle wireframe mode
 
+### Texture Modes
+- **T** - Toggle texture
+
 ### Application
 - **Q / ESC** - Quit application
 
