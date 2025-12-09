@@ -22,10 +22,27 @@ python3.11 --version
 ### 2. Install Dependencies
 
 ```bash
-pip install numpy PyOpenGL glfw imgui[glfw] Pillow
+pip install numpy PyOpenGL glfw imgui[glfw] Pillow pyassimp
 ```
 
-### 3. Run the Application
+### 3. Install Assimp Library (Windows)
+
+For 3D model loading support, you need the Assimp DLL:
+
+**Windows:**
+1. Download `assimp-vc143-mt.dll` from [Assimp releases](https://github.com/assimp/assimp/releases)
+2. Place the DLL file in the **root project directory** (same folder as `data_synthesis_app.py`)
+
+**Linux/macOS:**
+```bash
+# Ubuntu/Debian
+sudo apt-get install libassimp-dev
+
+# macOS
+brew install assimp
+```
+
+### 4. Run the Application
 
 Run the `run.py` script:
 
