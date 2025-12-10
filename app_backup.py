@@ -13,7 +13,7 @@ from imgui.integrations.glfw import GlfwRenderer  # type: ignore
 from OpenGL import GL
 
 from config import ShapeConfig, ShapeType, ShadingModel, MODEL_TEXTURE_MAP
-from config import ModelVisualizationMode, SubwindowType
+from config import ModelVisualizationMode
 from config.palette import COLOR_PRESETS, ColorPreset
 from rendering.camera import CameraMovement
 from shape.factory import ShapeFactory
@@ -21,7 +21,6 @@ from shape.model import Model
 from template import SceneController, create_controller
 from template.shape_gallery import build_shape_scene, is_2d_shape
 from utils.dataset_export import DatasetExporter
-from ui import GradientDescentPanel, ChemistryPanel, GeometryPanel
 
 
 class App:
@@ -317,33 +316,80 @@ class App:
             traceback.print_exc()
 
 
-class SceneControlOverlay:
-    """Tabbed UI overlay for 3 subwindows: Geometry, Gradient Descent, Chemistry."""
+@dataclass(slots=True)
+class MenuOption:
+    label: str
+    kind: str  # 'template', 'shape', or 'model'
+    value: str | ShapeType
 
-    _PANEL_MIN_WIDTH = 280.0
-    _PANEL_MAX_WIDTH = 400.0
+
+class SceneControlOverlay:
+    """Immediate-mode UI overlay for selecting scenes, shapes, and shading."""
+
+    _PANEL_MIN_WIDTH = 240.0
+    _PANEL_MAX_WIDTH = 340.0
 
     def __init__(self, app: App, renderer):
         self.app = app
         self.renderer = renderer
 
-        # ImGui setup
+        # ImGui setup keeps context co-located with GLFW usage for easier lifecycle management.
         self._imgui = imgui
         self._context = imgui.create_context()
         self._impl = GlfwRenderer(app.window, attach_callbacks=False)
         self._impl.refresh_font_texture()
 
-        # Create subwindow panels
-        self.gradient_panel = GradientDescentPanel(renderer)
-        self.chemistry_panel = ChemistryPanel(renderer)
-        self.chemistry_panel.set_app(app)  # Set app reference for overlays
-        self.geometry_panel = GeometryPanel(renderer)
+        self._scene_controller: SceneController = create_controller()
+        self._shape_config = ShapeConfig()
+        self._color_presets: Sequence[ColorPreset] = COLOR_PRESETS
+        self._color_index = 0
+        self._shape_config.base_color = self._color_presets[self._color_index].rgb
+        (
+            self._template_options,
+            self._shape_options_2d,
+            self._shape_options_3d,
+            self._model_options,
+        ) = self._build_options()
+        if not (
+            self._template_options
+            or self._shape_options_2d
+            or self._shape_options_3d
+            or self._model_options
+        ):
+            raise RuntimeError(
+                "No templates, shapes, or models were discovered for the control overlay."
+            )
 
-        # Current active subwindow
-        self.active_subwindow = SubwindowType.GEOMETRY
+        self._current_option: MenuOption | None = None
 
-        # Activate default panel
-        self.geometry_panel.activate()
+        # Gradient descent optimizer options
+        self._gd_optimizer_index = 4  # Default to adam
+        self._gd_optimizers = [
+            "SGD",
+            "momentum",
+            "adagrad",
+            "rmsdrop",
+            "adam",
+            "adamw",
+            "adarpop",
+        ]
+
+        self.shading_model = ShadingModel.PHONG
+        self._shading_labels: dict[ShadingModel, str] = {
+            ShadingModel.NORMAL: "Normal",
+            ShadingModel.PHONG: "Phong",
+            ShadingModel.GOURAUD: "Gouraud",
+        }
+        self.renderer.set_shading_model(self.shading_model)
+
+        # Activate first available option so the renderer has a scene before the main loop.
+        initial_option = (
+            self._template_options[:1]
+            or self._shape_options_3d[:1]
+            or self._shape_options_2d[:1]
+            or self._model_options[:1]
+        )[0]
+        self._apply_selection(initial_option)
 
     def process_inputs(self) -> None:
         self._impl.process_inputs()
@@ -351,9 +397,6 @@ class SceneControlOverlay:
     def new_frame(self, _delta_time: float, winsize: Sequence[int | float]) -> None:
         self._imgui.new_frame()
         self._render_panel(winsize)
-        # Render periodic table overlay if in chemistry periodic table mode
-        if self.active_subwindow == SubwindowType.CHEMISTRY:
-            self.chemistry_panel.render_periodic_table_overlay(self._imgui)
 
     def render(self) -> None:
         self._imgui.render()
@@ -369,13 +412,89 @@ class SceneControlOverlay:
     def wants_mouse_capture(self) -> bool:
         return bool(self._imgui.get_io().want_capture_mouse)
 
+    def _build_options(
+        self,
+    ) -> tuple[List[MenuOption], List[MenuOption], List[MenuOption], List[MenuOption]]:
+        template_options: List[MenuOption] = []
+        shape_options_2d: List[MenuOption] = []
+        shape_options_3d: List[MenuOption] = []
+        model_options: List[MenuOption] = []
+
+        for name in sorted(self._scene_controller.listscenes()):
+            label = f"{self._format_name(name)}"
+            template_options.append(
+                MenuOption(label=label, kind="template", value=name)
+            )
+
+        for shape_type in sorted(
+            ShapeFactory.list_registered_shapes(), key=lambda item: item.name
+        ):
+            if shape_type in {ShapeType.LIGHT_SOURCE, ShapeType.MODEL}:
+                continue
+            label = f"{self._format_name(shape_type.name)}"
+            option = MenuOption(label=label, kind="shape", value=shape_type)
+            if is_2d_shape(shape_type):
+                shape_options_2d.append(option)
+            else:
+                shape_options_3d.append(option)
+
+        # Scan assets folder for 3D models
+        assets_path = Path("assets")
+        if assets_path.exists():
+            for model_file in sorted(assets_path.iterdir()):
+                if model_file.suffix.lower() in [".obj", ".ply"]:
+                    label = model_file.stem.replace("_", " ").title()
+                    model_options.append(
+                        MenuOption(label=label, kind="model", value=model_file.name)
+                    )
+
+        return template_options, shape_options_2d, shape_options_3d, model_options
+
+    def _apply_selection(self, option: MenuOption) -> None:
+        if option.kind == "template":
+            scene = self._scene_controller.set_current(option.value)
+            root = scene.rebuild()
+            self.renderer.set_scene(root)
+            self.renderer.set_face_culling(True)
+            self.renderer.set_shading_model(ShadingModel.PHONG)
+            self.shading_model = ShadingModel.PHONG
+        elif option.kind == "model":
+            # Load model with optional texture mapping
+            model_filename = option.value
+            self._shape_config.model_file = f"assets/{model_filename}"
+
+            # Set texture from mapping if available
+            texture_filename = MODEL_TEXTURE_MAP.get(model_filename)
+            if texture_filename:
+                self._shape_config.texture_file = f"textures/{texture_filename}"
+            else:
+                self._shape_config.texture_file = None
+
+            root = build_shape_scene(ShapeType.MODEL, self._shape_config)
+            self.renderer.set_scene(root)
+            self.renderer.set_face_culling(True)
+            self.renderer.set_shading_model(ShadingModel.PHONG)
+            self.shading_model = ShadingModel.PHONG
+        else:
+            selected_color = self._color_presets[self._color_index].rgb
+            self._shape_config.base_color = selected_color
+            root = build_shape_scene(option.value, self._shape_config)
+            is_shape_2d = is_2d_shape(option.value)
+            self.renderer.set_scene(root)
+            self.renderer.set_face_culling(not is_shape_2d)
+            next_shading = ShadingModel.NORMAL if is_shape_2d else ShadingModel.PHONG
+            self.renderer.set_shading_model(next_shading)
+            self.shading_model = next_shading
+
+        self._current_option = option
+        self.app.set_window_title(f"App - {option.label}")
+
     def _render_panel(self, winsize: Sequence[int | float]) -> None:
-        """Render the main tabbed control panel."""
         width = float(winsize[0]) if winsize else float(self.app.width)
         height = float(winsize[1]) if len(winsize) > 1 else float(self.app.height)
 
         panel_width = max(
-            self._PANEL_MIN_WIDTH, min(self._PANEL_MAX_WIDTH, width * 0.35)
+            self._PANEL_MIN_WIDTH, min(self._PANEL_MAX_WIDTH, width * 0.32)
         )
         panel_x = max(0.0, width - panel_width)
 
@@ -390,52 +509,91 @@ class SceneControlOverlay:
             panel_width, height, condition=self._imgui.ALWAYS
         )
 
-        self._imgui.begin("Controls", flags=flags)
+        self._imgui.begin("Scene Controls", flags=flags)
 
-        # Tab bar
-        if self._imgui.begin_tab_bar("SubwindowTabs"):
-            # Geometry tab
-            if self._imgui.begin_tab_item("Geometry")[0]:
-                if self.active_subwindow != SubwindowType.GEOMETRY:
-                    self.active_subwindow = SubwindowType.GEOMETRY
-                    self.geometry_panel.activate()
-                self.geometry_panel.render(self._imgui)
-                self._imgui.end_tab_item()
+        if self._template_options:
+            self._render_combo("Templates", self._template_options)
+        if self._shape_options_2d:
+            self._render_combo("2D Shapes", self._shape_options_2d)
+        if self._shape_options_3d:
+            self._render_combo("3D Shapes", self._shape_options_3d)
+        if self._model_options:
+            self._render_combo("Models", self._model_options)
 
-            # Gradient Descent tab
-            if self._imgui.begin_tab_item("Gradient Descent")[0]:
-                if self.active_subwindow != SubwindowType.GRADIENT_DESCENT:
-                    self.active_subwindow = SubwindowType.GRADIENT_DESCENT
-                    self.gradient_panel.activate()
-                self.gradient_panel.render(self._imgui)
-                self._imgui.end_tab_item()
+        self._imgui.spacing()
 
-            # Chemistry tab
-            if self._imgui.begin_tab_item("Chemistry")[0]:
-                if self.active_subwindow != SubwindowType.CHEMISTRY:
-                    self.active_subwindow = SubwindowType.CHEMISTRY
-                    self.chemistry_panel.activate()
-                self.chemistry_panel.render(self._imgui)
-                self._imgui.end_tab_item()
+        # Show optimizer dropdown if gradient descent is selected
+        if (
+            self._current_option
+            and self._current_option.kind == "template"
+            and self._current_option.value == "gradient_descent"
+        ):
+            optimizer_label = self._gd_optimizers[self._gd_optimizer_index]
+            if self._imgui.begin_combo("Optimizer", optimizer_label):
+                for idx, optimizer in enumerate(self._gd_optimizers):
+                    is_selected = idx == self._gd_optimizer_index
+                    clicked, _ = self._imgui.selectable(optimizer, is_selected)
+                    if clicked and idx != self._gd_optimizer_index:
+                        self._gd_optimizer_index = idx
+                        # Update scene with new optimizer
+                        scene = self._scene_controller.get_current_scene()
+                        if scene:
+                            scene.update_params(optimizer=optimizer)
+                            root = scene.rebuild()
+                            self.renderer.set_scene(root)
+                    if is_selected:
+                        self._imgui.set_item_default_focus()
+                self._imgui.end_combo()
+            self._imgui.spacing()
 
-            self._imgui.end_tab_bar()
-
-        # Global shading control applied to all subwindows
-        shading_labels = {
-            ShadingModel.NORMAL: "Normal",
-            ShadingModel.PHONG: "Phong",
-            ShadingModel.GOURAUD: "Gouraud",
-        }
-        # current label
-        current_shading = shading_labels.get(self.renderer.shading_model, "Phong")
-        if self._imgui.begin_combo("Shading", current_shading):
-            for model, label in shading_labels.items():
-                is_selected = model is self.renderer.shading_model
+        shading_label = self._shading_labels[self.shading_model]
+        if self._imgui.begin_combo("Shading", shading_label):
+            for model, label in self._shading_labels.items():
+                is_selected = model is self.shading_model
                 clicked, _ = self._imgui.selectable(label, is_selected)
-                if clicked and model is not self.renderer.shading_model:
+                if clicked and model is not self.shading_model:
+                    self.shading_model = model
                     self.renderer.set_shading_model(model)
                 if is_selected:
                     self._imgui.set_item_default_focus()
             self._imgui.end_combo()
 
+        color_label = self._color_presets[self._color_index].name
+        if self._imgui.begin_combo("Color Preset", color_label):
+            for idx, preset in enumerate(self._color_presets):
+                is_selected = idx == self._color_index
+                clicked, _ = self._imgui.selectable(preset.name, is_selected)
+                if clicked and idx != self._color_index:
+                    self._color_index = idx
+                    self._shape_config.base_color = preset.rgb
+                    self._shape_config.gradient_mode = None
+                    if self._current_option and self._current_option.kind == "shape":
+                        self._apply_selection(self._current_option)
+                if is_selected:
+                    self._imgui.set_item_default_focus()
+            self._imgui.end_combo()
+
+        self._imgui.spacing()
+        self._imgui.text_wrapped(
+            "Templates combine multiple objects and animations, while shapes let you preview a single primitive from the library."
+        )
         self._imgui.end()
+
+    @staticmethod
+    def _format_name(value: str) -> str:
+        return value.replace("_", " ").title()
+
+    def _render_combo(self, label: str, options: Sequence[MenuOption]) -> None:
+        active_label = (
+            self._current_option.label if self._current_option in options else "Select"
+        )
+        if self._imgui.begin_combo(label, active_label):
+            for option in options:
+                is_selected = option is self._current_option
+                display_label = option.label
+                clicked, _ = self._imgui.selectable(display_label, is_selected)
+                if clicked:
+                    self._apply_selection(option)
+                if is_selected:
+                    self._imgui.set_item_default_focus()
+            self._imgui.end_combo()
