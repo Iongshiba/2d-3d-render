@@ -28,7 +28,7 @@ class Renderer:
 
         self.use_trackball = False
         self.use_wireframe = False
-        self.use_texture = True
+        self.use_texture = False
         self.shading_model = ShadingModel.PHONG
         self.cull_face_enabled = config.cull_face
 

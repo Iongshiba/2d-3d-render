@@ -143,7 +143,7 @@ class Shape:
             )
             GL.glUniformMatrix4fv(self.camera_locs[mode], 1, GL.GL_TRUE, self.identity)
             GL.glUniformMatrix4fv(self.project_locs[mode], 1, GL.GL_TRUE, self.identity)
-            GL.glUniform1i(self.use_texture_locs[mode], True)
+            GL.glUniform1i(self.use_texture_locs[mode], False)
             GL.glUniform1i(self.texture_data_locs[mode], 0)
 
             # Lighting uniforms (only for Phong and Gouraud)
@@ -155,14 +155,14 @@ class Shape:
                     I = np.zeros((3, 3), dtype=np.float32)
                     I[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
                     I[:, 1] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-                    I[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+                    I[:, 2] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
                     GL.glUniformMatrix3fv(self.I_lights_locs[mode], 1, GL.GL_TRUE, I)
 
                 if self.K_materials_locs[mode] != -1:
                     K = np.zeros((3, 3), dtype=np.float32)
-                    K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-                    K[:, 1] = np.array([0.3, 0.3, 0.3], dtype=np.float32)
-                    K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+                    K[:, 0] = np.array([0.7, 0.7, 0.7], dtype=np.float32)  # diffuse
+                    K[:, 1] = np.array([0.3, 0.3, 0.3], dtype=np.float32)  # specular
+                    K[:, 2] = np.array([10.0, 10.0, 10.0], dtype=np.float32)  # ambient
                     GL.glUniformMatrix3fv(self.K_materials_locs[mode], 1, GL.GL_TRUE, K)
 
             program.deactivate()
@@ -182,7 +182,7 @@ class Shape:
 
         program.activate()
         # Set use_texture based on whether texture exists
-        GL.glUniform1i(self.use_texture_locs[mode], 1 if self.texture else 0)
+        GL.glUniform1i(self.use_texture_locs[mode], 1 if self.texture_enabled else 0)
         for shape in self.shapes:
             vao = shape.vao
             vao.activate()

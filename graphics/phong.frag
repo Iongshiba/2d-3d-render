@@ -19,23 +19,23 @@ uniform vec3 lightCoord;
 
 void main()
 {
+    vec3 finalColor;
+
     // diffuse
     vec3 vectorNorm = normalize(vertexNorm);
     vec3 lightDirection = normalize(lightCoord - vertexCoord);
 
-        // specular
-        vec3 cameraDirection = normalize(-vertexCoord);
-        vec3 reflectDirection = reflect(-lightDirection, vectorNorm);
+    // specular
+    vec3 cameraDirection = normalize(-vertexCoord);
+    vec3 reflectDirection = reflect(-lightDirection, vectorNorm);
 
-        vec3 g = vec3(
-            max(dot(lightDirection, vectorNorm), 0.0),
-            pow(max(dot(cameraDirection, reflectDirection), 0.0), shininess),
-            0.0
-        );
-        vec3 fragColor = matrixCompMult(K_materials, I_lights) * g;
-        finalColor = vertexColor * 0.5 + fragColor * 0.5;
-    }
-
+    vec3 g = vec3(
+        max(dot(lightDirection, vectorNorm), 0.0),
+        pow(max(dot(cameraDirection, reflectDirection), 0.0), shininess),
+        0.0
+    );
+    vec3 fragColor = matrixCompMult(K_materials, I_lights) * g;
+    finalColor = vertexColor * 0.5 + fragColor * 0.5;
 
     if (use_texture)
     {
