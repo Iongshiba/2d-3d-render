@@ -114,6 +114,29 @@ class Cube(Shape):
             stride=0,
             offset=None,
         )
+        
+        if texture_file:
+            # Cube texture coordinates (one UV coordinate per vertex)
+            texcoords = np.array([
+                [0.0, 1.0],  # back-top-left
+                [1.0, 1.0],  # back-top-right
+                [0.0, 0.0],  # back-bottom-left
+                [1.0, 0.0],  # back-bottom-right
+                [0.0, 1.0],  # front-top-left
+                [1.0, 1.0],  # front-top-right
+                [0.0, 0.0],  # front-bottom-left
+                [1.0, 0.0],  # front-bottom-right
+            ], dtype=np.float32)
+            vao.add_vbo(
+                location=3,
+                data=texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+        
         vao.add_ebo(
             indices
         )

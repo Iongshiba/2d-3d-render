@@ -94,6 +94,26 @@ class Cone(Shape):
             stride=0,
             offset=None,
         )
+
+        if texture_file:
+            # Cone side texture coordinates
+            texcoords = np.zeros((len(vertices), 2), dtype=np.float32)
+            texcoords[0] = [0.5, 1.0]  # apex
+            texcoords[1] = [0.5, 0.5]  # base center
+            for i in range(2, len(vertices)):
+                angle = 2.0 * np.pi * (i - 2) / sector
+                u = (i - 2) / sector
+                texcoords[i] = [u, 0.0]  # base rim
+            top_vao.add_vbo(
+                location=3,
+                data=texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         top_vao.add_ebo(
             top_indices,
         )
@@ -126,6 +146,28 @@ class Cone(Shape):
             stride=0,
             offset=None,
         )
+
+        if texture_file:
+            # Reuse the same texture coordinates for bottom cap
+            bottom_texcoords = np.zeros((len(vertices), 2), dtype=np.float32)
+            bottom_texcoords[0] = [0.5, 1.0]  # apex (not used)
+            bottom_texcoords[1] = [0.5, 0.5]  # base center
+            for i in range(2, len(vertices)):
+                angle = 2.0 * np.pi * (i - 2) / sector
+                bottom_texcoords[i] = [
+                    0.5 + 0.5 * np.cos(angle),
+                    0.5 + 0.5 * np.sin(angle),
+                ]
+            bottom_vao.add_vbo(
+                location=3,
+                data=bottom_texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         bottom_vao.add_ebo(
             bottom_indices,
         )

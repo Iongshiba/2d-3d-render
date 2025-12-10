@@ -60,6 +60,7 @@ class Shape:
         )
 
         self.texture = None
+        self.texture_enabled = False
         self.shading_mode = ShadingModel.PHONG
 
         # fmt: off
@@ -107,12 +108,14 @@ class Shape:
 
     def draw(self):
         self.shader_program.activate()
-        # Set use_texture based on whether texture exists
-        GL.glUniform1i(self.use_texture_loc, 1 if self.texture else 0)
+        # Set use_texture based on whether texture exists and is enabled
+        GL.glUniform1i(
+            self.use_texture_loc, 1 if (self.texture and self.texture_enabled) else 0
+        )
         for shape in self.shapes:
             vao = shape.vao
             vao.activate()
-            if self.texture:
+            if self.texture and self.texture_enabled:
                 self.texture.activate()
             # fmt: off
             if vao.ebo is not None:
@@ -123,7 +126,7 @@ class Shape:
                 GL.glDrawArrays(
                     shape.draw_mode, 0, shape.vertex_num
                 )
-            if self.texture:
+            if self.texture and self.texture_enabled:
                 self.texture.deactivate()
             vao.deactivate()
         self.shader_program.deactivate()
@@ -289,6 +292,10 @@ class Shape:
             height,
         )
         GL.glActiveTexture(GL.GL_TEXTURE0)
+
+    def set_texture_enabled(self, enabled: bool) -> None:
+        """Enable or disable texture mapping for this shape."""
+        self.texture_enabled = enabled
 
     def cleanup(self):
         """Cleanup OpenGL resources used by this shape."""

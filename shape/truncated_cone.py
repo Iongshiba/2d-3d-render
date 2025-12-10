@@ -65,7 +65,9 @@ class TruncatedCone(Shape):
         top_colors = self._apply_color_override(vertices_to_colors(top_circle), color)
         top_norms = np.tile(vector_up, len(top_coords))
         bottom_coords = vertices_to_coords(bottom_circle)
-        bottom_colors = self._apply_color_override(vertices_to_colors(bottom_circle), color)
+        bottom_colors = self._apply_color_override(
+            vertices_to_colors(bottom_circle), color
+        )
         bottom_norms = np.tile(-vector_up, len(bottom_coords))
         side_norms = np.array(side_norms, dtype=np.float32)
 
@@ -114,6 +116,26 @@ class TruncatedCone(Shape):
             offset=None,
         )
 
+        if texture_file:
+            # Top cap texture coordinates (radial)
+            top_texcoords = np.zeros((len(top_circle), 2), dtype=np.float32)
+            top_texcoords[0] = [0.5, 0.5]  # center
+            for i in range(1, len(top_circle)):
+                angle = 2.0 * np.pi * (i - 1) / sector
+                top_texcoords[i] = [
+                    0.5 + 0.5 * np.cos(angle),
+                    0.5 + 0.5 * np.sin(angle),
+                ]
+            top_vao.add_vbo(
+                location=3,
+                data=top_texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         bottom_vao = VAO()
         bottom_vao.add_vbo(
             location=0,
@@ -143,6 +165,26 @@ class TruncatedCone(Shape):
             offset=None,
         )
 
+        if texture_file:
+            # Bottom cap texture coordinates (radial)
+            bottom_texcoords = np.zeros((len(bottom_circle), 2), dtype=np.float32)
+            bottom_texcoords[0] = [0.5, 0.5]  # center
+            for i in range(1, len(bottom_circle)):
+                angle = 2.0 * np.pi * (i - 1) / sector
+                bottom_texcoords[i] = [
+                    0.5 + 0.5 * np.cos(angle),
+                    0.5 - 0.5 * np.sin(angle),
+                ]
+            bottom_vao.add_vbo(
+                location=3,
+                data=bottom_texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         side_vao = VAO()
         side_vao.add_vbo(
             location=0,
@@ -171,6 +213,23 @@ class TruncatedCone(Shape):
             stride=0,
             offset=None,
         )
+
+        if texture_file:
+            # Side texture coordinates (cylindrical unwrap)
+            side_texcoords = np.zeros((side_coords.shape[0], 2), dtype=np.float32)
+            for i in range(sector + 1):
+                u = i / sector
+                side_texcoords[i * 2] = [u, 0.0]  # bottom
+                side_texcoords[i * 2 + 1] = [u, 1.0]  # top
+            side_vao.add_vbo(
+                location=3,
+                data=side_texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
 
         self.shapes.extend(
             [

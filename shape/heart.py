@@ -107,6 +107,26 @@ class Heart(Shape):
             stride=0,
             offset=None,
         )
+
+        if texture_file:
+            # Generate spherical UV coordinates
+            texcoords = []
+            for stack_idx in range(stack):
+                for sector_idx in range(sector):
+                    u = sector_idx / (sector - 1)
+                    v = stack_idx / (stack - 1)
+                    texcoords.append([u, v])
+            side_texcoords = np.array(texcoords, dtype=np.float32)
+            vao.add_vbo(
+                location=3,
+                data=side_texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         vao.add_ebo(indices)
 
         self.shapes.append(
