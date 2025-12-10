@@ -22,7 +22,7 @@ def build_engine_config() -> EngineConfig:
         ),
         trackball=TrackballConfig(
             distance=10.0,
-            pan_sensitivity=0.0005,
+            pan_sensitivity=0.01,
         ),
     )
 

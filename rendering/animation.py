@@ -22,6 +22,7 @@ def gradient_descent(
     decay_rate: float = 0.99,
     beta1: float = 0.99,  # first moment
     beta2: float = 0.999,  # second moment
+    weight_decay: float = 0.01,  # L2 penalty for AdamW
     min_gradient: float = 0.001,
     max_gradient: float = 0.03,
 ):
@@ -65,7 +66,7 @@ def gradient_descent(
         elif optimizer == "rmsdrop":
             accumulated_grad = decay_rate * accumulated_grad + (1 - decay_rate) * xy_grad**2
             adapted_learning_rate = learning_rate / (np.sqrt(accumulated_grad) + epsilon)
-            displacement = -adapted_learning_rate * xy_grad * dt
+            displacement = -adapted_learning_rate * xy_grad * dt * 0.1  # Scale down displacement
         elif optimizer == "adam":
             time_step += 1
             velocity = beta1 * velocity + (1 - beta1) * xy_grad
@@ -77,8 +78,41 @@ def gradient_descent(
             
             displacement = -learning_rate * velocity_corrected / (np.sqrt(accumulated_grad_corrected) + epsilon) * dt
 
+        elif optimizer == "adamw":
+            time_step += 1
+            # AdamW: Adam with decoupled weight decay
+            velocity = beta1 * velocity + (1 - beta1) * xy_grad
+            accumulated_grad = beta2 * accumulated_grad + (1 - beta2) * xy_grad**2
+            
+            # bias correction
+            velocity_corrected = velocity / (1 - beta1**time_step)
+            accumulated_grad_corrected = accumulated_grad / (1 - beta2**time_step)
+            
+            # AdamW: weight decay applied directly to parameters, not gradient
+            displacement = -learning_rate * velocity_corrected / (np.sqrt(accumulated_grad_corrected) + epsilon) * dt
+            # Apply weight decay directly to position (decoupled from gradient)
+            position_vector = np.array([x, y], dtype=np.float32)
+            displacement = displacement - learning_rate * weight_decay * position_vector * dt
+
+        elif optimizer == "adarpop":
+            time_step += 1
+            # ADArpop: Adaptive learning rate with momentum
+            velocity = beta1 * velocity + (1 - beta1) * xy_grad
+            accumulated_grad = beta2 * accumulated_grad + (1 - beta2) * xy_grad**2
+            
+            # bias correction
+            velocity_corrected = velocity / (1 - beta1**time_step)
+            accumulated_grad_corrected = accumulated_grad / (1 - beta2**time_step)
+            
+            # ADArpop: adaptive clipping based on accumulated gradient
+            adaptive_clip = np.sqrt(accumulated_grad_corrected) * max_gradient
+            clipped_velocity = np.clip(velocity_corrected, -adaptive_clip, adaptive_clip)
+            
+            displacement = -learning_rate * clipped_velocity / (np.sqrt(accumulated_grad_corrected) + epsilon) * dt
+
         else:
-            displacement -= learning_rate * xy_grad * dt
+            # SGD: Simple gradient descent
+            displacement = -learning_rate * xy_grad * dt
         # fmt: on
 
         # Calculate new position

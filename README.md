@@ -40,6 +40,7 @@ python run.py
 - **Mouse drag (right button)** - Pan view
 - **Mouse scroll** - Zoom in/out
 - **F** - Toggle wireframe mode
+- **T** - Toggle texture mapping (for shapes with texture support)
 - **B** - Toggle bounding box visualization (3D models)
 - **N** - Toggle depth map visualization (3D models)
 - **M** - Toggle segmentation mask visualization (3D models)

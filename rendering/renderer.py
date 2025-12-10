@@ -28,6 +28,7 @@ class Renderer:
 
         self.use_trackball = False
         self.use_wireframe = False
+        self.use_texture = True
         self.shading_model = ShadingModel.PHONG
         self.cull_face_enabled = config.cull_face
 
@@ -124,6 +125,9 @@ class Renderer:
     def rotate_camera(self, old, new):
         self.camera.look(old, new)
 
+    def pan_camera(self, old, new):
+        self.camera.pan(old, new)
+
     def move_trackball(self, old, new):
         self.trackball.pan(old, new)
 
@@ -139,6 +143,13 @@ class Renderer:
             GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
         else:
             GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+
+    def toggle_texture_mapping(self):
+        self.use_texture = not self.use_texture
+        # Apply to all shapes that have textures
+        for node in self.shape_nodes:
+            if hasattr(node.shape, "set_texture_enabled"):
+                node.shape.set_texture_enabled(self.use_texture)
 
     def set_shading_model(self, shading: ShadingModel) -> None:
         self.shading_model = shading
