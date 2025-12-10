@@ -55,6 +55,18 @@ from . import (
     molecule,
     water,
     carbon_dioxide,
+    ammonia,
+    methane,
+    oxygen,
     heart_orbit,
     gradient_descent,
+)  # noqa: E402,F401
+from . import (
+    hydrogen,
+    nitrogen,
+    carbon_monoxide,
+    nitric_oxide,
+    ethane,
+    ethylene,
+    benzene,
 )  # noqa: E402,F401
