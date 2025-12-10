@@ -65,10 +65,10 @@ def build() -> Node:
     scene.add(_generate_nucleus(0, 0, 0, 1, 7, 4))
 
     electron_meta = [
-        *[(phase, 4.0, 0.5) for phase in np.linspace(0, np.pi * 2, 2)],
-        *[(phase, 8.0, 0.6) for phase in np.linspace(0, np.pi * 2, 8)],
+        *[(phase, 4.0, 0.5) for phase in np.linspace(0, np.pi * 2, 3)],
+        *[(phase, 8.0, 0.6) for phase in np.linspace(0, np.pi * 2, 10)],
         *[(phase, 12.0, 0.7) for phase in np.linspace(0, np.pi * 2, 18)],
-        # *[(phase, 16.0, 0.8) for phase in np.linspace(0, np.pi * 2, 32)],
+        *[(phase, 16.0, 0.8) for phase in np.linspace(0, np.pi * 2, 32)],
         # *[(phase, 20.0, 0.9) for phase in np.linspace(0, np.pi * 2, 50)],
         # *[(phase, 24.0, 0.8) for phase in np.linspace(0, np.pi * 2, 72)],
         # *[(phase, 28.0, 0.8) for phase in np.linspace(0, np.pi * 2, 98)],
