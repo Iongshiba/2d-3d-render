@@ -142,3 +142,4 @@ exercise/
 .gitignore
 *.dll
 dataset/
+exercise.py
