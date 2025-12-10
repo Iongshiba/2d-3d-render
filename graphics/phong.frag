@@ -17,15 +17,8 @@ uniform float shininess;
 
 uniform vec3 lightCoord;
 
-uniform int shadingMode; // 0 = normal visualization, 1 = Phong
-
 void main()
 {
-    if (shadingMode == 0) {
-        color = vec4(vertexColor, 1.0);
-        return;
-    }
-
     // diffuse
     vec3 vectorNorm = normalize(vertexNorm);
     vec3 lightDirection = normalize(lightCoord - vertexCoord);

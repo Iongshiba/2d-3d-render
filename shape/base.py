@@ -9,6 +9,8 @@ from config import (
     _SHAPE_VERTEX_PATH,
     _GOURAUD_VERTEX_PATH,
     _GOURAUD_FRAGMENT_PATH,
+    _NORMAL_VERTEX_PATH,
+    _NORMAL_FRAGMENT_PATH,
     ShadingModel,
 )
 from graphics.buffer import VAO
@@ -33,18 +35,26 @@ class Part:
 # fmt: on
 class Shape:
     def __init__(self, vertex_file: str, fragment_file: str):
-        # Shaders
-        if not vertex_file:
-            vertex_file = _SHAPE_VERTEX_PATH
-        if not fragment_file:
-            fragment_file = _SHAPE_FRAGMENT_PATH
-
-        vertex_shader = Shader(vertex_file)
-        fragment_shader = Shader(fragment_file)
-        self.shader_program = ShaderProgram()
-        self.shader_program.add_shader(vertex_shader)
-        self.shader_program.add_shader(fragment_shader)
-        self.shader_program.build()
+        # Ignore passed parameters - we now create all 3 shader programs
+        # Create three separate shader programs for each shading technique
+        
+        # Normal shading program
+        self.normal_program = ShaderProgram()
+        self.normal_program.add_shader(Shader(_NORMAL_VERTEX_PATH))
+        self.normal_program.add_shader(Shader(_NORMAL_FRAGMENT_PATH))
+        self.normal_program.build()
+        
+        # Phong shading program
+        self.phong_program = ShaderProgram()
+        self.phong_program.add_shader(Shader(_SHAPE_VERTEX_PATH))
+        self.phong_program.add_shader(Shader(_SHAPE_FRAGMENT_PATH))
+        self.phong_program.build()
+        
+        # Gouraud shading program
+        self.gouraud_program = ShaderProgram()
+        self.gouraud_program.add_shader(Shader(_GOURAUD_VERTEX_PATH))
+        self.gouraud_program.add_shader(Shader(_GOURAUD_FRAGMENT_PATH))
+        self.gouraud_program.build()
 
         # Geometry containers
         self.shapes: list[Part] = []
@@ -61,54 +71,95 @@ class Shape:
 
         self.texture = None
         self.shading_mode = ShadingModel.PHONG
+        
+        # Get uniform locations for all three programs
+        self._init_uniform_locations()
+        
+        # Initialize default uniform values for all programs
+        self._init_uniform_defaults()
 
-        # fmt: off
-        self.transform_loc = GL.glGetUniformLocation(self.shader_program.program, "transform")
-        self.camera_loc = GL.glGetUniformLocation(self.shader_program.program, "camera")
-        self.project_loc = GL.glGetUniformLocation(self.shader_program.program, "project")
-        self.use_texture_loc = GL.glGetUniformLocation(self.shader_program.program, "use_texture")
-        self.texture_data_loc = GL.glGetUniformLocation(self.shader_program.program, "textureData")
-        # Phong (eye-space) uniforms
-        self.I_lights_loc = GL.glGetUniformLocation(self.shader_program.program, "I_lights")
-        self.K_materials_loc = GL.glGetUniformLocation(self.shader_program.program, "K_materials")
-        self.shininess_loc = GL.glGetUniformLocation(self.shader_program.program, "shininess")
-        self.light_coord_loc = GL.glGetUniformLocation(self.shader_program.program, "lightCoord")
-        self.shading_mode_loc = GL.glGetUniformLocation(self.shader_program.program, "shadingMode")
+    def _init_uniform_locations(self):
+        """Get uniform locations for all shader programs."""
+        # Common uniforms (present in all shaders)
+        self.transform_locs = {}
+        self.camera_locs = {}
+        self.project_locs = {}
+        self.use_texture_locs = {}
+        self.texture_data_locs = {}
+        
+        # Lighting uniforms (not in normal shader)
+        self.I_lights_locs = {}
+        self.K_materials_locs = {}
+        self.shininess_locs = {}
+        self.light_coord_locs = {}
+        
+        for mode, program in [(ShadingModel.NORMAL, self.normal_program),
+                              (ShadingModel.PHONG, self.phong_program),
+                              (ShadingModel.GOURAUD, self.gouraud_program)]:
+            self.transform_locs[mode] = GL.glGetUniformLocation(program.program, "transform")
+            self.camera_locs[mode] = GL.glGetUniformLocation(program.program, "camera")
+            self.project_locs[mode] = GL.glGetUniformLocation(program.program, "project")
+            self.use_texture_locs[mode] = GL.glGetUniformLocation(program.program, "use_texture")
+            self.texture_data_locs[mode] = GL.glGetUniformLocation(program.program, "textureData")
+            
+            # Lighting uniforms (only for Phong and Gouraud)
+            if mode != ShadingModel.NORMAL:
+                self.I_lights_locs[mode] = GL.glGetUniformLocation(program.program, "I_lights")
+                self.K_materials_locs[mode] = GL.glGetUniformLocation(program.program, "K_materials")
+                self.shininess_locs[mode] = GL.glGetUniformLocation(program.program, "shininess")
+                self.light_coord_locs[mode] = GL.glGetUniformLocation(program.program, "lightCoord")
 
-        self.shader_program.activate()
-        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
-        GL.glUniformMatrix4fv(self.camera_loc, 1, GL.GL_TRUE, self.identity)
-        GL.glUniformMatrix4fv(self.project_loc, 1, GL.GL_TRUE, self.identity)
-        GL.glUniform1i(self.use_texture_loc, True)
-        GL.glUniform1i(self.texture_data_loc, 0)
-        if self.shading_mode_loc != -1:
-            GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
-
-        # Set sensible defaults for Phong-eye uniforms if present
-        # Default shininess
-        if self.shininess_loc != -1:
-            GL.glUniform1f(self.shininess_loc, 32.0)
-
-        # Default light/material matrices: columns are [diffuse, specular, unused]
-        if self.I_lights_loc != -1:
-            I = np.zeros((3, 3), dtype=np.float32)
-            I[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)  # diffuse intensity (RGB)
-            I[:, 1] = np.array([1.0, 1.0, 1.0], dtype=np.float32)  # specular intensity (RGB)
-            I[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-            GL.glUniformMatrix3fv(self.I_lights_loc, 1, GL.GL_TRUE, I)
-
-        if self.K_materials_loc != -1:
-            K = np.zeros((3, 3), dtype=np.float32)
-            K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)  # Kd (diffuse reflectance)
-            K[:, 1] = np.array([0.3, 0.3, 0.3], dtype=np.float32)  # Ks (specular reflectance)
-            K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-            GL.glUniformMatrix3fv(self.K_materials_loc, 1, GL.GL_TRUE, K)
-        self.shader_program.deactivate()
+    def _init_uniform_defaults(self):
+        """Initialize default uniform values for all shader programs."""
+        for mode, program in [(ShadingModel.NORMAL, self.normal_program),
+                              (ShadingModel.PHONG, self.phong_program),
+                              (ShadingModel.GOURAUD, self.gouraud_program)]:
+            program.activate()
+            
+            # Common uniforms
+            GL.glUniformMatrix4fv(self.transform_locs[mode], 1, GL.GL_TRUE, self.identity)
+            GL.glUniformMatrix4fv(self.camera_locs[mode], 1, GL.GL_TRUE, self.identity)
+            GL.glUniformMatrix4fv(self.project_locs[mode], 1, GL.GL_TRUE, self.identity)
+            GL.glUniform1i(self.use_texture_locs[mode], True)
+            GL.glUniform1i(self.texture_data_locs[mode], 0)
+            
+            # Lighting uniforms (only for Phong and Gouraud)
+            if mode != ShadingModel.NORMAL:
+                if self.shininess_locs[mode] != -1:
+                    GL.glUniform1f(self.shininess_locs[mode], 32.0)
+                
+                if self.I_lights_locs[mode] != -1:
+                    I = np.zeros((3, 3), dtype=np.float32)
+                    I[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+                    I[:, 1] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+                    I[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+                    GL.glUniformMatrix3fv(self.I_lights_locs[mode], 1, GL.GL_TRUE, I)
+                
+                if self.K_materials_locs[mode] != -1:
+                    K = np.zeros((3, 3), dtype=np.float32)
+                    K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+                    K[:, 1] = np.array([0.3, 0.3, 0.3], dtype=np.float32)
+                    K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+                    GL.glUniformMatrix3fv(self.K_materials_locs[mode], 1, GL.GL_TRUE, K)
+            
+            program.deactivate()
+    
+    def _get_active_program(self) -> ShaderProgram:
+        """Get the currently active shader program based on shading mode."""
+        if self.shading_mode == ShadingModel.NORMAL:
+            return self.normal_program
+        elif self.shading_mode == ShadingModel.GOURAUD:
+            return self.gouraud_program
+        else:  # PHONG
+            return self.phong_program
 
     def draw(self):
-        self.shader_program.activate()
+        program = self._get_active_program()
+        mode = self.shading_mode
+        
+        program.activate()
         # Set use_texture based on whether texture exists
-        GL.glUniform1i(self.use_texture_loc, 1 if self.texture else 0)
+        GL.glUniform1i(self.use_texture_locs[mode], 1 if self.texture else 0)
         for shape in self.shapes:
             vao = shape.vao
             vao.activate()
@@ -126,7 +177,7 @@ class Shape:
             if self.texture:
                 self.texture.deactivate()
             vao.deactivate()
-        self.shader_program.deactivate()
+        program.deactivate()
 
     def transform(
         self,
@@ -134,11 +185,14 @@ class Shape:
         view_matrix: np.ndarray,
         model_matrix: np.ndarray,
     ):
-        self.shader_program.activate()
-        GL.glUniformMatrix4fv(self.project_loc, 1, GL.GL_TRUE, project_matrix)
-        GL.glUniformMatrix4fv(self.camera_loc, 1, GL.GL_TRUE, view_matrix)
-        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, model_matrix)
-        self.shader_program.deactivate()
+        program = self._get_active_program()
+        mode = self.shading_mode
+        
+        program.activate()
+        GL.glUniformMatrix4fv(self.project_locs[mode], 1, GL.GL_TRUE, project_matrix)
+        GL.glUniformMatrix4fv(self.camera_locs[mode], 1, GL.GL_TRUE, view_matrix)
+        GL.glUniformMatrix4fv(self.transform_locs[mode], 1, GL.GL_TRUE, model_matrix)
+        program.deactivate()
 
     def lighting(
         self,
@@ -146,18 +200,25 @@ class Shape:
         light_position: np.ndarray,
         camera_position: np.ndarray,
     ):
-        self.shader_program.activate()
+        # Skip lighting for NORMAL mode
+        if self.shading_mode == ShadingModel.NORMAL:
+            return
+        
+        program = self._get_active_program()
+        mode = self.shading_mode
+        
+        program.activate()
 
         # Columns correspond to [diffuse, specular, unused].
-        if self.I_lights_loc != -1:
+        if self.I_lights_locs[mode] != -1:
             I = np.zeros((3, 3), dtype=np.float32)
             I[:, 0] = np.array(light_color, dtype=np.float32)
             I[:, 1] = np.array(light_color, dtype=np.float32)
             I[:, 2] = np.array(light_color, dtype=np.float32)
-            GL.glUniformMatrix3fv(self.I_lights_loc, 1, GL.GL_TRUE, I)
+            GL.glUniformMatrix3fv(self.I_lights_locs[mode], 1, GL.GL_TRUE, I)
 
         # material coefficients modify this method in the specific shape class.
-        if self.K_materials_loc != -1:
+        if self.K_materials_locs[mode] != -1:
             K = np.zeros((3, 3), dtype=np.float32)
             # diffuse
             K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
@@ -165,107 +226,21 @@ class Shape:
             K[:, 1] = np.array([0.2, 0.2, 0.2], dtype=np.float32)
             # ambient
             K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-            GL.glUniformMatrix3fv(self.K_materials_loc, 1, GL.GL_TRUE, K)
+            GL.glUniformMatrix3fv(self.K_materials_locs[mode], 1, GL.GL_TRUE, K)
 
-        if self.shininess_loc != -1:
-            GL.glUniform1f(self.shininess_loc, 32.0)
+        if self.shininess_locs[mode] != -1:
+            GL.glUniform1f(self.shininess_locs[mode], 32.0)
 
         # light position should be provided in eye-space
-        if self.light_coord_loc != -1:
-            GL.glUniform3fv(self.light_coord_loc, 1, light_position)
-        self.shader_program.deactivate()
+        if self.light_coord_locs[mode] != -1:
+            GL.glUniform3fv(self.light_coord_locs[mode], 1, light_position)
+        program.deactivate()
 
     def set_shading_mode(self, shading: ShadingModel) -> None:
+        """Switch to a different shading mode by changing the active shader program."""
         if shading == self.shading_mode:
             return
-
-        # Determine shader paths based on shading mode
-        if shading == ShadingModel.GOURAUD:
-            vertex_path = _GOURAUD_VERTEX_PATH
-            fragment_path = _GOURAUD_FRAGMENT_PATH
-        elif shading == ShadingModel.PHONG:
-            vertex_path = _SHAPE_VERTEX_PATH
-            fragment_path = _SHAPE_FRAGMENT_PATH
-        else:  # NORMAL
-            vertex_path = _SHAPE_VERTEX_PATH
-            fragment_path = _SHAPE_FRAGMENT_PATH
-
         self.shading_mode = shading
-        self._reload_shaders(vertex_path, fragment_path)
-
-    def _reload_shaders(self, vertex_file: str, fragment_file: str):
-        """Reload shaders with new vertex and fragment shader files."""
-        # Clean up old shader program
-        if hasattr(self.shader_program, "cleanup"):
-            self.shader_program.cleanup()
-
-        # Create new shader program
-        vertex_shader = Shader(vertex_file)
-        fragment_shader = Shader(fragment_file)
-        self.shader_program = ShaderProgram()
-        self.shader_program.add_shader(vertex_shader)
-        self.shader_program.add_shader(fragment_shader)
-        self.shader_program.build()
-
-        # Re-query all uniform locations
-        self.transform_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "transform"
-        )
-        self.camera_loc = GL.glGetUniformLocation(self.shader_program.program, "camera")
-        self.project_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "project"
-        )
-        self.use_texture_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "use_texture"
-        )
-        self.texture_data_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "textureData"
-        )
-        self.I_lights_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "I_lights"
-        )
-        self.K_materials_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "K_materials"
-        )
-        self.shininess_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "shininess"
-        )
-        self.light_coord_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "lightCoord"
-        )
-        self.shading_mode_loc = GL.glGetUniformLocation(
-            self.shader_program.program, "shadingMode"
-        )
-
-        # Re-initialize uniforms with defaults
-        self.shader_program.activate()
-        GL.glUniformMatrix4fv(self.transform_loc, 1, GL.GL_TRUE, self.identity)
-        GL.glUniformMatrix4fv(self.camera_loc, 1, GL.GL_TRUE, self.identity)
-        GL.glUniformMatrix4fv(self.project_loc, 1, GL.GL_TRUE, self.identity)
-        GL.glUniform1i(self.use_texture_loc, True)
-        GL.glUniform1i(self.texture_data_loc, 0)
-
-        if self.shading_mode_loc != -1:
-            GL.glUniform1i(self.shading_mode_loc, self.shading_mode.value)
-
-        if self.shininess_loc != -1:
-            GL.glUniform1f(self.shininess_loc, 32.0)
-
-        if self.I_lights_loc != -1:
-            I = np.zeros((3, 3), dtype=np.float32)
-            I[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-            I[:, 1] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-            I[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-            GL.glUniformMatrix3fv(self.I_lights_loc, 1, GL.GL_TRUE, I)
-
-        if self.K_materials_loc != -1:
-            K = np.zeros((3, 3), dtype=np.float32)
-            K[:, 0] = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-            K[:, 1] = np.array([0.3, 0.3, 0.3], dtype=np.float32)
-            K[:, 2] = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-            GL.glUniformMatrix3fv(self.K_materials_loc, 1, GL.GL_TRUE, K)
-
-        self.shader_program.deactivate()
 
     @staticmethod
     def _apply_color_override(
@@ -302,8 +277,12 @@ class Shape:
             if self.texture and hasattr(self.texture, "cleanup"):
                 self.texture.cleanup()
 
-            # Clean up shader program
-            if hasattr(self.shader_program, "cleanup"):
-                self.shader_program.cleanup()
+            # Clean up all three shader programs
+            if hasattr(self.normal_program, "cleanup"):
+                self.normal_program.cleanup()
+            if hasattr(self.phong_program, "cleanup"):
+                self.phong_program.cleanup()
+            if hasattr(self.gouraud_program, "cleanup"):
+                self.gouraud_program.cleanup()
         except Exception:
             pass  # Silently ignore cleanup errors

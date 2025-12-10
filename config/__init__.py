@@ -26,6 +26,8 @@ _SHAPE_VERTEX_PATH = _shader_path("graphics", "phong.vert")
 _SHAPE_FRAGMENT_PATH = _shader_path("graphics", "phong.frag")
 _GOURAUD_VERTEX_PATH = _shader_path("graphics", "gouraud.vert")
 _GOURAUD_FRAGMENT_PATH = _shader_path("graphics", "gouraud.frag")
+_NORMAL_VERTEX_PATH = _shader_path("graphics", "normal.vert")
+_NORMAL_FRAGMENT_PATH = _shader_path("graphics", "normal.frag")
 _LIGHT_FRAGMENT_PATH = _shader_path("graphics", "light.frag")
 
 
@@ -168,6 +170,8 @@ __all__ = [
     "_SHAPE_FRAGMENT_PATH",
     "_GOURAUD_VERTEX_PATH",
     "_GOURAUD_FRAGMENT_PATH",
+    "_NORMAL_VERTEX_PATH",
+    "_NORMAL_FRAGMENT_PATH",
     "_LIGHT_FRAGMENT_PATH",
     "CameraMovement",
     "ShapeType",
