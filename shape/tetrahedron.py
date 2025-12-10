@@ -108,15 +108,18 @@ class Tetrahedron(Shape):
             stride=0,
             offset=None,
         )
-        # vao.add_vbo(
-        #     location=3,
-        #     data=texcoords,
-        #     ncomponents=2,
-        #     dtype=GL.GL_FLOAT,
-        #     normalized=False,
-        #     stride=0,
-        #     offset=None,
-        # )
+
+        if texture_file:
+            vao.add_vbo(
+                location=3,
+                data=texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         vao.add_ebo(
             indices,
         )

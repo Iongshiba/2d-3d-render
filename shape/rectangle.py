@@ -13,7 +13,7 @@ class Rectangle(Shape):
         self,
         color=(None, None, None),
         vertex_file=None,
-        fragment_file=None, 
+        fragment_file=None,
         texture_file=None,
     ) -> None:
         super().__init__(vertex_file, fragment_file)
@@ -40,6 +40,17 @@ class Rectangle(Shape):
 
         coords = vertices_to_coords(vertices)
         colors = self._apply_color_override(vertices_to_colors(vertices), color)
+        
+        # Normals for 2D rectangle (pointing in +Z direction)
+        normals = np.array(
+            [
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+            ],
+            dtype=np.float32,
+        )
 
         vao = VAO()
         vao.add_vbo(
@@ -55,6 +66,15 @@ class Rectangle(Shape):
             location=1,
             data=colors,
             ncomponents=colors.shape[1],
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        vao.add_vbo(
+            location=2,
+            data=normals,
+            ncomponents=3,
             dtype=GL.GL_FLOAT,
             normalized=False,
             stride=0,

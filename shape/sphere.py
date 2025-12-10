@@ -85,12 +85,11 @@ class Sphere(Shape):
         side_coords = vertices_to_coords(sides)
         
         # Apply gradient colors if gradient_mode is specified
-        # if gradient_mode:
-        #     from utils import generate_gradient_colors
-        #     side_colors = generate_gradient_colors(sides, gradient_mode, gradient_start, gradient_end)
-        # else:
-        #     side_colors = vertices_to_colors(sides)
-        side_colors = self._apply_color_override(vertices_to_colors(sides), color)
+        if gradient_mode:
+            from utils import generate_gradient_colors
+            side_colors = generate_gradient_colors(sides, gradient_mode, gradient_start, gradient_end)
+        else:
+            side_colors = self._apply_color_override(vertices_to_colors(sides), color)
 
         indices = np.array(indices, dtype=np.int32)
         norms = np.copy(side_coords)
@@ -124,15 +123,26 @@ class Sphere(Shape):
             stride=0,
             offset=None,
         )
-        # side_vao.add_vbo(
-        #     location=2,
-        #     data=side_texcoords,
-        #     ncomponents=2,
-        #     dtype=GL.GL_FLOAT,
-        #     normalized=False,
-        #     stride=0,
-        #     offset=None,
-        # )
+        
+        if texture_file:
+            # Generate spherical UV coordinates
+            texcoords = []
+            for stack_idx in range(stack):
+                for sector_idx in range(sector):
+                    u = sector_idx / (sector - 1)
+                    v = stack_idx / (stack - 1)
+                    texcoords.append([u, v])
+            side_texcoords = np.array(texcoords, dtype=np.float32)
+            side_vao.add_vbo(
+                location=3,
+                data=side_texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+        
         side_vao.add_ebo(
             indices,
         )

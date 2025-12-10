@@ -11,7 +11,7 @@ from shape.factory import ShapeFactory
 from . import register_scene
 
 
-def build_gradient_descent():
+def build_gradient_descent(optimizer: str = "adam"):
     ball_radius = 0.2
     ball_color = (0.698, 0.745, 0.710)
     equation_str = "(x^2 + y^2)"
@@ -52,7 +52,7 @@ def build_gradient_descent():
         equation=equation_shape,
         start_pos=ball_initial_location,
         ball_radius=ball_radius,
-        optimizer="adam",
+        optimizer=optimizer,
     )
 
     ball_cfg = ShapeConfig()
@@ -73,10 +73,10 @@ def build_gradient_descent():
     return root
 
 
-def build() -> Node:
+def build(optimizer: str = "adam") -> Node:
     root = Node("root")
 
-    root.add(build_gradient_descent())
+    root.add(build_gradient_descent(optimizer))
 
     light_cfg = ShapeConfig()
     light_shape = ShapeFactory.create_shape(ShapeType.LIGHT_SOURCE, light_cfg)

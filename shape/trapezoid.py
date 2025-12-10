@@ -30,6 +30,17 @@ class Trapezoid(Shape):
 
         coords = vertices_to_coords(vertices)
         colors = self._apply_color_override(vertices_to_colors(vertices), color)
+        
+        # Normals for 2D trapezoid (pointing in +Z direction)
+        normals = np.array(
+            [
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+            ],
+            dtype=np.float32,
+        )
 
         vao = VAO()
         vao.add_vbo(
@@ -50,6 +61,36 @@ class Trapezoid(Shape):
             stride=0,
             offset=None,
         )
+        vao.add_vbo(
+            location=2,
+            data=normals,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
+        
+        if texture_file:
+            # Texture coordinates for trapezoid
+            texcoords = np.array(
+                [
+                    [0.0, 0.0],  # Bottom-left
+                    [0.25, 1.0], # Top-left
+                    [1.0, 0.0],  # Bottom-right
+                    [0.75, 1.0], # Top-right
+                ],
+                dtype=np.float32,
+            )
+            vao.add_vbo(
+                location=3,
+                data=texcoords,
+                ncomponents=texcoords.shape[1],
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
 
         self.shapes.extend(
             [Part(vao, GL.GL_TRIANGLE_STRIP, len(vertices))]

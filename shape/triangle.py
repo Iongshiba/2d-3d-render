@@ -11,11 +11,11 @@ from shape.base import Shape, Part
 # TODO: CUSTOMIZABLE
 class Triangle(Shape):
     def __init__(
-        self, 
+        self,
         color=(None, None, None),
         vertex_file=None,
         fragment_file=None,
-        texture_file=None
+        texture_file=None,
     ):
         super().__init__(vertex_file, fragment_file)
 
@@ -28,6 +28,16 @@ class Triangle(Shape):
 
         coords = vertices_to_coords(vertices)
         colors = self._apply_color_override(vertices_to_colors(vertices), color)
+        
+        # Normals for 2D triangle (pointing in +Z direction)
+        normals = np.array(
+            [
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+            ],
+            dtype=np.float32,
+        )
 
         vao = VAO()
         vao.add_vbo(
@@ -48,6 +58,15 @@ class Triangle(Shape):
             stride=0,
             offset=None,
         )
+        vao.add_vbo(
+            location=2,
+            data=normals,
+            ncomponents=3,
+            dtype=GL.GL_FLOAT,
+            normalized=False,
+            stride=0,
+            offset=None,
+        )
         
         if texture_file:
             self._create_texture(texture_file)
@@ -61,7 +80,7 @@ class Triangle(Shape):
                 dtype=np.float32,
             )
             vao.add_vbo(
-                location=2,
+                location=3,
                 data=texcoords,
                 ncomponents=texcoords.shape[1],
                 dtype=GL.GL_FLOAT,

@@ -166,6 +166,39 @@ class Equation(Shape):
             stride=0,
             offset=None,
         )
+
+        if texture_file:
+            # Generate UV texture coordinates based on X, Y mesh positions
+            # Map the mesh coordinates to [0, 1] range for texture sampling
+            texcoords = np.zeros((len(vertices), 2), dtype=np.float32)
+
+            # Normalize X and Y coordinates to [0, 1] range
+            X_flat = X.flatten()
+            Y_flat = Y.flatten()
+
+            X_min, X_max = X_flat.min(), X_flat.max()
+            Y_min, Y_max = Y_flat.min(), Y_flat.max()
+
+            # Handle edge case where min == max
+            X_range = X_max - X_min if X_max != X_min else 1.0
+            Y_range = Y_max - Y_min if Y_max != Y_min else 1.0
+
+            u = (X_flat - X_min) / X_range
+            v = (Y_flat - Y_min) / Y_range
+
+            texcoords[:, 0] = u
+            texcoords[:, 1] = v
+
+            vao.add_vbo(
+                location=3,
+                data=texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         vao.add_ebo(indices)
 
         self.shapes.extend(

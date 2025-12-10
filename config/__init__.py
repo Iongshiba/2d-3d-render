@@ -15,6 +15,7 @@ from .enums import (
     GradientMode,
     ModelVisualizationMode,
 )
+from .subwindow import SubwindowType, ChemistryMode
 
 
 def _shader_path(*parts: str) -> str:
@@ -36,6 +37,7 @@ MODEL_TEXTURE_MAP = {
     "catn0.obj": "cat_text_m.jpg",
     "Patchwork chair.ply": "Patchwork chair_0.jpg",
     "Christmas Bear.obj": "Christmas Bear_1.jpg",
+    "DiamondSword.obj": "Diffuse.png",
 }
 
 
@@ -85,7 +87,7 @@ class ShapeConfig:
     equation_mesh_size: int = 10
     equation_mesh_density: int = 100
 
-    texture_file: str = ""
+    texture_file: str = r"textures\wall.jpg"
 
     model_file: str = ""
 
@@ -181,4 +183,6 @@ __all__ = [
     "RenderMode",
     "GradientMode",
     "ModelVisualizationMode",
+    "SubwindowType",
+    "ChemistryMode",
 ]

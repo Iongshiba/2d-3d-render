@@ -11,15 +11,25 @@ class Scene:
     name: str
     builder: Callable[[], Node]
     root: Node | None = None
+    params: dict | None = None  # Optional parameters for scene customization
 
     def get_root(self) -> Node:
         if self.root is None:
-            self.root = self.builder()
+            self.root = (
+                self.builder() if self.params is None else self.builder(**self.params)
+            )
         return self.root
 
     def rebuild(self) -> Node:
-        self.root = self.builder()
+        self.root = (
+            self.builder() if self.params is None else self.builder(**self.params)
+        )
         return self.root
+
+    def update_params(self, **kwargs) -> None:
+        if self.params is None:
+            self.params = {}
+        self.params.update(kwargs)
 
 
 class SceneController:

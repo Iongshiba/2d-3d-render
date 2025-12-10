@@ -74,6 +74,22 @@ class Camera:
         )
         self._recalculate_basis()
 
+    def pan(self, old, new):
+        """Pan the camera in the right/up plane."""
+        offset = (new[0] - old[0], new[1] - old[1])
+        if offset[0] == 0 and offset[1] == 0:
+            return
+        
+        # Pan sensitivity factor (adjust this for faster/slower panning)
+        pan_speed = 0.005
+        
+        # Move along the right and up vectors
+        right_offset = -offset[0] * pan_speed
+        up_offset = offset[1] * pan_speed
+        
+        self.position = self.position + (self.right * right_offset) + (self.up * up_offset)
+        self._recalculate_basis()
+
     def get_view_matrix(self):
         forward = self.front
         right = self.right

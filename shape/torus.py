@@ -71,6 +71,16 @@ class Torus(Shape):
         norms = np.array(norms, dtype=np.float32)
 
         side_vao = VAO()
+        if texture_file:
+            # Toroidal UV coordinates
+            texcoords = []
+            for stack_idx in range(stack):
+                for sector_idx in range(sector):
+                    u = sector_idx / (sector - 1)
+                    v = stack_idx / (stack - 1)
+                    texcoords.append([u, v])
+            side_texcoords = np.array(texcoords, dtype=np.float32)
+
         side_vao.add_vbo(
             location=0,
             data=side_coords,
@@ -98,6 +108,18 @@ class Torus(Shape):
             stride=0,
             offset=None,
         )
+
+        if texture_file:
+            side_vao.add_vbo(
+                location=3,
+                data=side_texcoords,
+                ncomponents=2,
+                dtype=GL.GL_FLOAT,
+                normalized=False,
+                stride=0,
+                offset=None,
+            )
+
         side_vao.add_ebo(
             indices,
         )
