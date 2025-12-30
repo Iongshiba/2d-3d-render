@@ -71,7 +71,6 @@ python run.py
 ## Controls
 
 ### Camera & Navigation
-- **W/A/S/D** - Move camera forward/left/backward/right
 - **Mouse drag (left button)** - Rotate view / Orbit camera
 - **Mouse drag (right button)** - Pan view (trackball mode)
 - **Mouse scroll** - Zoom in/out

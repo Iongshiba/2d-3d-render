@@ -425,6 +425,7 @@ class SceneControlOverlay:
             ShadingModel.NORMAL: "Normal",
             ShadingModel.PHONG: "Phong",
             ShadingModel.GOURAUD: "Gouraud",
+            ShadingModel.BLINN_PHONG: "Blinn-Phong",
         }
         # current label
         current_shading = shading_labels.get(self.renderer.shading_model, "Phong")

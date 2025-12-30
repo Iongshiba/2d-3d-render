@@ -27,11 +27,11 @@ void main()
 
     // specular
     vec3 cameraDirection = normalize(-vertexCoord);
-    vec3 reflectDirection = reflect(-lightDirection, vectorNorm);
+    vec3 halfDirection = normalize(cameraDirection + lightDirection);
 
     vec3 g = vec3(
         max(dot(lightDirection, vectorNorm), 0.0),
-        pow(max(dot(cameraDirection, reflectDirection), 0.0), shininess),
+        pow(max(dot(vectorNorm, halfDirection), 0.0), shininess),
         1.0
     );
     vec3 fragColor = matrixCompMult(K_materials, I_lights) * g;

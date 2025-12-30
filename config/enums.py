@@ -46,6 +46,7 @@ class ShadingModel(Enum):
     NORMAL = 0
     PHONG = 1
     GOURAUD = 2
+    BLINN_PHONG = 3
 
 
 class TextureMode(Enum):

@@ -9,6 +9,8 @@ from config import (
     _SHAPE_VERTEX_PATH,
     _GOURAUD_VERTEX_PATH,
     _GOURAUD_FRAGMENT_PATH,
+    _BLINN_PHONG_VERTEX_PATH,
+    _BLINN_PHONG_FRAGMENT_PATH,
     _NORMAL_VERTEX_PATH,
     _NORMAL_FRAGMENT_PATH,
     ShadingModel,
@@ -56,6 +58,12 @@ class Shape:
         self.gouraud_program.add_shader(Shader(_GOURAUD_FRAGMENT_PATH))
         self.gouraud_program.build()
 
+        # Blinn-Phong shading program
+        self.blinn_phong_program = ShaderProgram()
+        self.blinn_phong_program.add_shader(Shader(_BLINN_PHONG_VERTEX_PATH))
+        self.blinn_phong_program.add_shader(Shader(_BLINN_PHONG_FRAGMENT_PATH))
+        self.blinn_phong_program.build()
+
         # Geometry containers
         self.shapes: list[Part] = []
 
@@ -98,6 +106,7 @@ class Shape:
             (ShadingModel.NORMAL, self.normal_program),
             (ShadingModel.PHONG, self.phong_program),
             (ShadingModel.GOURAUD, self.gouraud_program),
+            (ShadingModel.BLINN_PHONG, self.blinn_phong_program),
         ]:
             self.transform_locs[mode] = GL.glGetUniformLocation(
                 program.program, "transform"
@@ -134,6 +143,7 @@ class Shape:
             (ShadingModel.NORMAL, self.normal_program),
             (ShadingModel.PHONG, self.phong_program),
             (ShadingModel.GOURAUD, self.gouraud_program),
+            (ShadingModel.BLINN_PHONG, self.blinn_phong_program),
         ]:
             program.activate()
 
@@ -173,6 +183,8 @@ class Shape:
             return self.normal_program
         elif self.shading_mode == ShadingModel.GOURAUD:
             return self.gouraud_program
+        elif self.shading_mode == ShadingModel.BLINN_PHONG:
+            return self.blinn_phong_program
         else:  # PHONG
             return self.phong_program
 

@@ -43,7 +43,7 @@ void main()
     float specular = pow(max(dot(V, R), 0.0), shininess);
     
     // Combine lighting components
-    vec3 g = vec3(diffuse, specular, 0.0);
+    vec3 g = vec3(diffuse, specular, 1.0);
     vec3 lighting = matrixCompMult(K_materials, I_lights) * g;
     
     // Blend with vertex color
